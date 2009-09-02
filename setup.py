@@ -1,9 +1,14 @@
+import os
 from setuptools import setup, find_packages
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name='django-staticfiles',
     version='0.1.1',
     description="A Django app that provides helpers for serving static files.",
+    long_description=read('README'),
     author='Jannis Leidel',
     author_email='jannis@leidel.info',
     license='BSD',
