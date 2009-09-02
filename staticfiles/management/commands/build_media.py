@@ -141,10 +141,6 @@ class Command(AppCommand):
             else:
                 app, source = first_source
 
-            # Special case apps that have media in <app>/media, not in
-            # <app>/media/<app>, e.g. django.contrib.admin
-            if app in prepend_label_apps:
-                destination = os.path.join(app, destination)
             print "\nSelected %r provided by %r." % (destination, app)
             self.process_file(source, destination, media_root, **options)
 
@@ -178,6 +174,10 @@ class Command(AppCommand):
             for filename in self.filter_names(files, exclude=exclude):
                 absolute_path = os.path.join(root, filename)
                 relative_path = absolute_path[prefix_length:]
+                # Special case apps that have media in <app>/media, not in
+                # <app>/media/<app>, e.g. django.contrib.admin
+                if app in prepend_label_apps:
+                    relative_path = os.path.join(app, relative_path)
                 self.media_files.setdefault(
                     relative_path, []).append((app, absolute_path))
 
