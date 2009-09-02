@@ -1,0 +1,165 @@
+==================
+django-staticfiles
+==================
+
+This is a Django app that provides helpers for serving static files.
+
+The main website for django-staticfiles is
+`bitbucket.org/jezdez/django-staticfiles`_ where you can also file tickets.
+
+You can also install the `in-development version`_ of django-staticfiles with
+``pip install django-staticfiles==dev`` or ``easy_install django-staticfiles==dev``.
+
+.. _bitbucket.org/jezdez/django-staticfiles: http://bitbucket.org/jezdez/django-staticfiles/
+.. _in-development version: http://bitbucket.org/jezdez/django-staticfiles/get/tip.gz#egg=django-staticfiles-dev
+
+Helpers
+=======
+
+build_media management command
+------------------------------
+
+The build_media script collects the media files from all installed apps and
+arranges them under the ``STATIC_ROOT`` folder::
+
+    $ python manage.py build_media --all
+
+Alternatively you can pass a list of apps to the command::
+
+    $ python manage.py build_media admin polls
+
+In case you have two apps with the same file name and relative path you should
+use the ``--interactive`` option of ``build_media`` which will prompt you to 
+choose which one to use. This is useful if you want to overwrite default media
+files with your custom app, for example. Remember to remove the 
+``STATIC_ROOT`` folder before you use this option or the script will prompt 
+you for each file.
+
+Please also refer to the help of the build_media management command by running::
+
+    $ python manage.py build_media --help
+
+resolve_media management command
+--------------------------------
+
+To quickly resolve the full file path of a media file on the filesystem,
+you can pass its expected URL path(s) to the ``resolve_media`` management
+command, e.g.::
+
+    $ python manage.py resolve_media css/base.css
+    Resolving css/polls.css:
+        /home/polls.com/polls/media/css/polls.css
+
+If multiple locations are found that match the given path
+it will list all of them, sorted by its importance.
+
+Serving static files during development
+=========================================
+
+.. note:: Don't use this on production servers.
+   This feature is **only intended for development**.
+   Please, don't shoot yourself in the foot. Thanks.
+
+``staticfiles`` provides the static file serving view
+``staticfiles.views.serve`` to handle the app media, media files defined
+with the ``STATICFILES_DIRS`` setting and other media files found in the
+``MEDIA_ROOT`` directory. Make sure your projects' urls.py contains the
+following snippet below the rest of the url configuration::
+
+    from django.conf import settings
+    if settings.DEBUG:
+        urlpatterns += patterns('', 
+            (r'^site_media/', include('staticfiles.urls')),
+        )
+
+Setting
+=======
+
+STATIC_ROOT
+-----------
+
+:Default: ``''`` (Empty string)
+
+The absolute path to the directory that holds static files like app media::
+
+    STATIC_ROOT = "/home/polls.com/polls/site_media/static/"
+
+STATIC_URL
+----------
+
+:Default: ``''`` (Empty string)
+
+URL that handles the files served from STATIC_ROOT, e.g.::
+
+    STATIC_URL = '/site_media/static/'
+
+Note that this should have a trailing slash if it has a path component.
+
+Good: "http://www.example.com/static/" Bad: "http://www.example.com/static"
+
+STATICFILES_DIRS
+-----------------------
+
+:Default: ``[]``
+
+This setting defines the additional locations the ``staticfiles`` app will
+traverse when looking for media files, e.g. if you use the ``build_media``
+or ``resolve_media`` management command or use the static file serving view.
+
+It should be defined as a sequence of ``(label, path)`` tuples, e.g.::
+
+    STATICFILES_DIRS = (
+        ('special_polls', '/home/special.polls.com/polls/media'),
+        ('polls', '/home/polls.com/polls/media'),
+    )
+
+STATICFILES_PREPEND_LABEL_APPS
+-------------------------------
+
+:Default: ``('django.contrib.admin',)``
+
+A sequence of app paths that have the media files in ``<app>/media``, not in
+``<app>/media/<app>``, e.g. ``django.contrib.admin``.
+
+STATICFILES_MEDIA_DIRNAMES
+---------------------------
+
+:Default: ``('media',)``
+
+A sequence of directory names to be used when searching for media files in
+installed apps, e.g. if an app has its media files in ``<app>/static``
+use::
+
+    STATICFILES_MEDIA_DIRNAMES = (
+        'media',
+        'static',
+    )
+
+STATICFILES_EXCLUDED_APPS
+-------------------------
+
+:Default: ``[]``
+
+A sequence of app paths that should be ignored when searching for media
+files::
+
+    STATICFILES_EXCLUDED_APPS = (
+        'annoying.app',
+        'old.company.app',
+    )
+
+
+Changelog:
+==========
+
+v0.1.1 (2009-09-02):
+--------------------
+
+* Added README with a bit of documentation :)
+
+v0.1.0 (2009-09-02):
+--------------------
+
+* Initial checkin from Pinax' source.
+
+* Will create the STATIC_ROOT directory if not existent.
