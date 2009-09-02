@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-staticfiles',
-    version='0.1.0',
+    version='0.1.1',
     description="A Django app that provides helpers for serving static files.",
     author='Jannis Leidel',
     author_email='jannis@leidel.info',
