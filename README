@@ -152,6 +152,13 @@ files::
 Changelog:
 ==========
 
+v0.1.2 (2009-09-02):
+--------------------
+
+* Fixed a typo in settings.py
+* Fixed a conflict in build_media between handling non-namespaced app media
+  and other files with the same relative path.
+
 v0.1.1 (2009-09-02):
 --------------------
 
