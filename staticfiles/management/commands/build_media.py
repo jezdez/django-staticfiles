@@ -55,9 +55,10 @@ class Command(AppCommand):
     def handle(self, *app_labels, **options):
         media_root = os.path.normpath(options.get('media_root'))
 
-        if not os.path.isdir(media_root):
-            raise CommandError(
-                'Designated media location %s could not be found.' % media_root)
+        if not os.path.exists(media_root):
+            os.makedirs(media_root)
+        elif not os.path.isdir(media_root):
+            raise CommandError("%s exists and is not a directory." % media_root)
 
         if options.get('dry_run', False):
             print "\n    DRY RUN! NO FILES WILL BE MODIFIED."
