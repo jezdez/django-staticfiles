@@ -1,6 +1,6 @@
 import os.path
 from django.conf import settings
-from django.core.exceptios import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured
 
 # The directory in which the static files are collected in
 ROOT = getattr(settings, 'STATIC_ROOT', None)
