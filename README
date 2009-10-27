@@ -53,6 +53,20 @@ command, e.g.::
 If multiple locations are found that match the given path
 it will list all of them, sorted by its importance.
 
+static_url context processor
+----------------------------
+
+To refer to static file assets from a template:
+
+- set the ``STATIC_URL`` setting (see below) to the URL path where your
+  webserver serves the files located in ``STATIC_ROOT``.
+
+- Add ``staticfiles.context_processors.static_url`` to your
+  ``TEMPLATE_CONTEXT_PROCESSORS`` setting.
+
+- Templates rendered with ``RequestContext`` will now have access to a
+  ``STATIC_URL`` context variable.
+
 Serving static files during development
 =========================================
 

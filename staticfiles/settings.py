@@ -8,6 +8,9 @@ if ROOT is None:
     raise ImproperlyConfigured('Please set your STATIC_ROOT setting to an '
         'existing directory in which the staticfiles can be collected.')
 
+# The URL path to STATIC_ROOT
+URL = getattr(settings, 'STATIC_URL', '')
+
 # A tuple of two-tuples with a name and the path of additional directories
 # which hold static files and should be taken into account
 DIRS = getattr(settings, 'STATICFILES_DIRS', ())
