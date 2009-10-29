@@ -16,37 +16,37 @@ You can also install the `in-development version`_ of django-staticfiles with
 Helpers
 =======
 
-build_media management command
+build_static management command
 ------------------------------
 
-The build_media script collects the media files from all installed apps and
+The build_static script collects the media files from all installed apps and
 arranges them under the ``STATIC_ROOT`` folder::
 
-    $ python manage.py build_media --all
+    $ python manage.py build_static --all
 
 Alternatively you can pass a list of apps to the command::
 
-    $ python manage.py build_media admin polls
+    $ python manage.py build_static admin polls
 
 In case you have two apps with the same file name and relative path you should
-use the ``--interactive`` option of ``build_media`` which will prompt you to 
+use the ``--interactive`` option of ``build_static`` which will prompt you to 
 choose which one to use. This is useful if you want to overwrite default media
 files with your custom app, for example. Remember to remove the 
 ``STATIC_ROOT`` folder before you use this option or the script will prompt 
 you for each file.
 
-Please also refer to the help of the build_media management command by running::
+Please also refer to the help of the build_static management command by running::
 
-    $ python manage.py build_media --help
+    $ python manage.py build_static --help
 
-resolve_media management command
+resolve_static management command
 --------------------------------
 
 To quickly resolve the full file path of a media file on the filesystem,
-you can pass its expected URL path(s) to the ``resolve_media`` management
+you can pass its expected URL path(s) to the ``resolve_static`` management
 command, e.g.::
 
-    $ python manage.py resolve_media css/base.css
+    $ python manage.py resolve_static css/base.css
     Resolving css/polls.css:
         /home/polls.com/polls/media/css/polls.css
 
@@ -117,8 +117,8 @@ STATICFILES_DIRS
 :Default: ``[]``
 
 This setting defines the additional locations the ``staticfiles`` app will
-traverse when looking for media files, e.g. if you use the ``build_media``
-or ``resolve_media`` management command or use the static file serving view.
+traverse when looking for media files, e.g. if you use the ``build_static``
+or ``resolve_static`` management command or use the static file serving view.
 
 It should be defined as a sequence of ``(label, path)`` tuples, e.g.::
 
@@ -166,12 +166,19 @@ files::
 Changelog:
 ==========
 
+development
+-----------
+
+* Renamed build_media and resolve_media management commands to *_static as to
+  avoid confusions between Django's use of the term "media" (for uploads) and
+  "static" files.
+
 v0.1.2 (2009-09-02):
 --------------------
 
 * Fixed a typo in settings.py
-* Fixed a conflict in build_media between handling non-namespaced app media
-  and other files with the same relative path.
+* Fixed a conflict in build_media (now build_static) between handling
+  non-namespaced app media and other files with the same relative path.
 
 v0.1.1 (2009-09-02):
 --------------------
