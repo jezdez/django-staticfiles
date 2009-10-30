@@ -1,12 +1,7 @@
-import os.path
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
 # The directory in which the static files are collected in
 ROOT = getattr(settings, 'STATIC_ROOT', None)
-if ROOT is None:
-    raise ImproperlyConfigured('Please set your STATIC_ROOT setting to an '
-        'existing directory in which the staticfiles can be collected.')
 
 # The URL path to STATIC_ROOT
 URL = getattr(settings, 'STATIC_URL', '')
@@ -27,3 +22,7 @@ PREPEND_LABEL_APPS = getattr(settings, 'STATICFILES_PREPEND_LABEL_APPS',
 EXCLUDED_APPS = getattr(settings, 'STATICFILES_EXCLUDED_APPS', ())
 
 APPS = [app for app in settings.INSTALLED_APPS if app not in EXCLUDED_APPS]
+
+# Destination storage
+STORAGE = getattr(settings, 'STATICFILES_STORAGE',
+                  'staticfiles.storage.StaticFileStorage')

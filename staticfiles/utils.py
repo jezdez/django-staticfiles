@@ -1,8 +1,8 @@
 import os
 import sys
-from django.conf import settings
 
 from staticfiles.settings import ROOT, DIRS, MEDIA_DIRNAMES, APPS
+
 
 def get_media_path(path, all=False):
     """
@@ -47,6 +47,7 @@ def get_media_path(path, all=False):
                         collection.append(media)
     return collection or None
 
+
 def _resolve_name(name, package, level):
     """Return the absolute name of the module to be imported."""
     if not hasattr(package, 'rindex'):
@@ -60,22 +61,16 @@ def _resolve_name(name, package, level):
                               "package")
     return "%s.%s" % (package[:dot], name)
 
-def import_module(name, package=None):
-    """Import a module.
 
-    The 'package' argument is required when performing a relative import. It
-    specifies the package to use as the anchor point from which to resolve the
-    relative import to an absolute import.
-
+def dynamic_import(import_string):
     """
-    if name.startswith('.'):
-        if not package:
-            raise TypeError("relative imports require the 'package' argument")
-        level = 0
-        for character in name:
-            if character != '.':
-                break
-            level += 1
-        name = _resolve_name(name[level:], package, level)
-    __import__(name)
-    return sys.modules[name]
+    Dynamically import a module or object.
+    
+    """
+    # Use rfind rather than rsplit for Python 2.3 compatibility.
+    lastdot = import_string.rfind('.')
+    if lastdot == -1:
+        return __import__(import_string, {}, {}, [])
+    module_name, attr = import_string[:lastdot], import_string[lastdot + 1:]
+    parent_module = __import__(module_name, {}, {}, [attr])
+    return getattr(parent_module, attr)

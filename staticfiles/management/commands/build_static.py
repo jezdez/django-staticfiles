@@ -1,27 +1,24 @@
+import fnmatch
 import os
-import sys
-import glob
 import shutil
+import sys
 from optparse import make_option
 
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
-from django.db.models import get_app
-from django.utils.text import get_text_list
-from django.core.management.base import CommandError, AppCommand
+from django.core.files.storage import FileSystemStorage
+from django.core.management.base import CommandError
 
-from staticfiles.utils import import_module
-from staticfiles.settings import (ROOT, DIRS, APPS,
-                                  MEDIA_DIRNAMES, PREPEND_LABEL_APPS)
-
-prepend_label_apps = [a.rsplit('.', 1)[-1] for a in PREPEND_LABEL_APPS]
+from staticfiles.management.base import OptionalAppCommand
+from staticfiles.settings import DIRS, EXCLUDED_APPS, MEDIA_DIRNAMES, \
+    STORAGE, PREPEND_LABEL_APPS
+from staticfiles import utils
 
 try:
     set
 except NameError:
     from sets import Set as set # Python 2.3 fallback
 
-class Command(AppCommand):
+
+class Command(OptionalAppCommand):
     """
     Command that allows to copy or symlink media files from different
     locations to the settings.STATIC_ROOT.
@@ -29,259 +26,209 @@ class Command(AppCommand):
     Based on the collectmedia management command by Brian Beck:
     http://blog.brianbeck.com/post/50940622/collectmedia
     """
-    media_files = {}
-    media_dirs = MEDIA_DIRNAMES
-    media_root = ROOT
-    exclude = ['CVS', '.*', '*~']
-    option_list = AppCommand.option_list + (
-        make_option('-i', '--interactive', action='store_true', dest='interactive',
-            help="Run in interactive mode, asking before modifying files and selecting from multiple sources."),
-        make_option('-a', '--all', action='store_true', dest='all',
-            help="Traverse all installed apps."),
-        make_option('--media-root', default=media_root, dest='media_root', metavar='DIR',
-            help="Specifies the root directory in which to collect media files."),
-        make_option('-m', '--media-dir', action='append', default=media_dirs, dest='media_dirs', metavar='DIR',
-            help="Specifies the name of the media directory to look for in each app."),
-        make_option('-e', '--exclude', action='append', default=exclude, dest='exclude', metavar='PATTERNS',
-            help="A space-delimited list of glob-style patterns to ignore. Use multiple times to add more."),
+    option_list = OptionalAppCommand.option_list + (
+        make_option('--noinput', action='store_false', dest='interactive',
+            default=True, help="Do NOT prompt the user for input of any "
+                "kind."),
+        make_option('-i', '--ignore', action='append',
+            default=['CVS', '.*', '*~'], dest='ignore_patterns',
+            metavar='PATTERNS', help="A space-delimited list of glob-style "
+                "patterns to ignore. Use multiple times to add more."),
         make_option('-n', '--dry-run', action='store_true', dest='dry_run',
             help="Do everything except modify the filesystem."),
         make_option('-l', '--link', action='store_true', dest='link',
             help="Create a symbolic link to each file instead of copying."),
     )
-    help = 'Collect media files from apps and other locations in a single media directory.'
-    args = '[appname appname ...]'
+    help = ("Collect media files from apps and other locations in a single "
+            "media directory.")
 
-    def handle(self, *app_labels, **options):
-        media_root = os.path.normpath(options.get('media_root'))
+    def handle(self, ignore_patterns, *app_labels, **options):
+        options['skipped_files'] = []
+        options['copied_files'] = []
+        storage = utils.dynamic_import(STORAGE)()
+        options['destination_storage'] = storage
+        try:
+            destination_paths = self.get_files(storage, ignore_patterns)
+        except OSError:
+            # The destination storage location may not exist yet. It'll get
+            # created when the first file is copied.
+            destination_paths = []
+        options['destination_paths'] = destination_paths
+        try:
+            storage.path('')
+            destination_local = True
+        except NotImplementedError:
+            destination_local = False
+        options['destination_local'] = destination_local
+        if options['link']:
+            if sys.platform == 'win32':
+                message = "Symlinking is not supported by this platform (%s)."
+                raise CommandError(message % sys.platform)
+            if not destination_local:
+                raise CommandError("Can't symlink to a remote destination.")
+        # Warn before doing anything more.
+        if options.get('interactive'):
+            confirm = raw_input("""
+You have requested to collate static media files and copy them to the
+destination location as specified in your settings file. 
 
-        if not os.path.exists(media_root):
-            os.makedirs(media_root)
-        elif not os.path.isdir(media_root):
-            raise CommandError("%s exists and is not a directory." % media_root)
+This will overwrite existing files. Are you sure you want to do this?
 
-        if options.get('dry_run', False):
-            print "\n    DRY RUN! NO FILES WILL BE MODIFIED."
-        print "\nCollecting media in %s" % media_root
+Type 'yes' to continue, or 'no' to cancel: """)
+            if confirm != 'yes':
+                raise CommandError("Static files build cancelled.")
+        for name, dir in DIRS:
+            self.handle_dir(dir=dir, ignore_patterns=ignore_patterns,
+                            destination_prepend=name, **options)
+        return super(Command, self).handle(ignore_patterns=ignore_patterns,
+                                           *app_labels, **options)
 
-        if app_labels:
-            try:
-                app_list = self.load_apps(
-                    [get_app(label).__name__.rsplit('.', 1)[0] for label in app_labels]
-                )
-            except (ImproperlyConfigured, ImportError), e:
-                raise CommandError(
-                    "%s. Is your INSTALLED_APPS setting correct?" % e)
-        else:
-            if not options.get('all', False):
-                raise CommandError('Enter at least one appname or use the --all option')
-            app_list = self.load_apps(APPS)
+    def handle_dir(self, dir, ignore_patterns, destination_prepend, **options):
+        """
+        Copy all files from a directory.
+        
+        """
+        source_storage = FileSystemStorage(location=dir)
+        for source in self.get_files(source_storage, ignore_patterns):
+            destination = self.destination_prepend(source,
+                                                   destination_prepend)
+            self.copy_file(source, destination, source_storage, **options)
 
-        traversed_apps = [app.__name__.rsplit('.', 1)[-1] for app in app_list]
-        print "Traversing apps: %s" % get_text_list(traversed_apps, 'and')
-        for app_mod in app_list:
-            self.handle_app(app_mod, **options)
-
-        if not app_labels:
-            # Look in additional locations for media, only if --all is used.
-            extra_media = []
-            for label, path in DIRS:
-                if os.path.isdir(path):
-                    extra_media.append((label, path))
-            extra_labels = [label for label, path in extra_media]
-            print "Looking additionally in: %s" % get_text_list(extra_labels, 'and')
-            exclude = options.get('exclude')
-            for extra_label, extra_path in extra_media:
-                self.add_media_files(extra_label, extra_path, exclude)
-
-        # This mapping collects files that may be copied.  Keys are what the
-        # file's path relative to `media_root` will be when copied.  Values
-        # are a list of 2-tuples containing the the name of the app providing
-        # the file and the file's absolute path.  The list will have a length
-        # greater than 1 if multiple apps provide a media file with the same
-        # relative path.
-
-        # Forget the unused versions of a media file
-        for f in self.media_files:
-            self.media_files[f] = dict(self.media_files[f]).items()
-
-        # Stop if no media files were found
-        if not self.media_files:
-            print "\nNo media found."
-            return
-
-        interactive = options.get('interactive', False)
-        # Try to copy in some predictable order.
-        destinations = list(self.media_files)
-        destinations.sort()
-        for destination in destinations:
-            sources = self.media_files[destination]
-            first_source, other_sources = sources[0], sources[1:]
-            if interactive and other_sources:
-                first_app = first_source[0]
-                app_sources = dict(sources)
-                for (app, source) in sources:
-                    if destination.startswith(app):
-                        first_app = app
-                        first_source = (app, source)
-                        break
-                print "\nThe file %r is provided by multiple apps:" % destination
-                print "\n".join(["    %s" % app for (app, source) in sources])
-                message = "Enter the app that should provide this file [%s]: " % first_app
-                while True:
-                    app = raw_input(message)
-                    if not app:
-                        app, source = first_source
-                        break
-                    elif app in app_sources:
-                        source = app_sources[app]
-                        break
-                    else:
-                        print "The app %r does not provide this file." % app
-            else:
-                app, source = first_source
-
-            print "\nSelected %r provided by %r." % (destination, app)
-            self.process_file(source, destination, media_root, **options)
+    def post_handle(self, copied_files, **options):
+        logger = self.get_logger()
+        count = len(copied_files)
+        logger.info("%s static file%s built." % (count,
+                                                 count != 1 and 's' or ''))
 
     def handle_app(self, app, **options):
-        exclude = options.get('exclude')
-        media_dirs = options.get('media_dirs')
-        app_label = app.__name__.rsplit('.', 1)[-1]
+        """
+        Copy all static media files from an application.
+        
+        """
+        self.get_files_for_app(app, copy=True, **options)
+
+    def excluded_app(self, app, skipped_files, **options):
+        """
+        Gather all the static media files for excluded apps.
+        
+        This is so a warning can be issued for later copied files which would
+        normally be copied by excluded apps.
+        
+        """
+        all_files = self.get_files_for_app(app, **options)
+        skipped_files.extend(all_files)
+
+    def get_files_for_app(self, app, ignore_patterns, destination_storage,
+                          dry_run, copy=False, **options):
+        """
+        Return a list of tuples containing the relative destination paths for
+        all files that should be copied for an app.
+        
+        If ``copy`` argument is True, the files are actually copied.
+        
+        """
+        logger = self.get_logger()
+        if app in EXCLUDED_APPS:
+            return []
+        bits = app.__name__.split('.')[:-1]
+        app_name = bits[-1]
+        if '.'.join(bits) in PREPEND_LABEL_APPS:
+            destination_prepend = app_name
+        else:
+            destination_prepend = None
         app_root = os.path.dirname(app.__file__)
-        for media_dir in media_dirs:
-            app_media = os.path.join(app_root, media_dir)
-            if os.path.isdir(app_media):
-                self.add_media_files(app_label, app_media, exclude)
+        destination_paths = []
+        for media_dirname in MEDIA_DIRNAMES:
+            location = os.path.join(app_root, media_dirname)
+            if not os.path.isdir(location):
+                continue
+            logger.debug('Media location %r found for %r app.' %
+                         (media_dirname, app_name))
+            source_storage = FileSystemStorage(location=location)
+            for source in self.get_files(source_storage, ignore_patterns):
+                if destination_prepend:
+                    destination = '/'.join([destination_prepend, source])
+                else:
+                    destination = source
+                if copy:
+                    self.copy_file(source, destination, source_storage,
+                                   destination_storage, dry_run, **options)
+                destination_paths.append(destination)
+        return destination_paths
 
-    def load_apps(self, apps):
-        app_list = []
-        for app_entry in apps:
-            try:
-                app_mod = import_module(app_entry)
-            except ImportError, e:
-                raise CommandError('ImportError %s: %s' % (app_entry, e.args[0]))
-            app_media_dir = os.path.join(
-                os.path.dirname(app_mod.__file__), 'media')
-            if os.path.isdir(app_media_dir):
-                app_list.append(app_mod)
-        return app_list
+    def get_files(self, storage, ignore_patterns, location=''):
+        """
+        Recursively walk the storage directories gathering a complete list of
+        files that should be copied, returning this list.
+        
+        """
+        directories, files = storage.listdir(location)
+        static_files = [location and '/'.join([location, fn]) or fn
+                        for fn in files
+                        if not self.is_ignored(fn, ignore_patterns)]
+        for dir in directories:
+            if self.is_ignored(dir, ignore_patterns):
+                continue
+            if location:
+                dir = '/'.join([location, dir])
+            static_files.extend(self.get_files(storage, ignore_patterns, dir))
+        return static_files
 
-    def add_media_files(self, app, location, exclude):
-        prefix_length = len(location) + len(os.sep)
-        for root, dirs, files in os.walk(location):
-            # Filter files based on the exclusion pattern.
-            for filename in self.filter_names(files, exclude=exclude):
-                absolute_path = os.path.join(root, filename)
-                relative_path = absolute_path[prefix_length:]
-                # Special case apps that have media in <app>/media, not in
-                # <app>/media/<app>, e.g. django.contrib.admin
-                if app in prepend_label_apps:
-                    relative_path = os.path.join(app, relative_path)
-                self.media_files.setdefault(
-                    relative_path, []).append((app, absolute_path))
-
-    def process_file(self, source, destination, root, link=False, **options):
-        dry_run = options.get('dry_run', False)
-        interactive = options.get('interactive', False)
-        destination = os.path.abspath(os.path.join(root, destination))
-        if not dry_run:
-            # Get permission bits and ownership of `root`.
-            try:
-                root_stat = os.stat(root)
-            except os.error, e:
-                mode = 0777 # Default for `os.makedirs` anyway.
-                uid = gid = None
-            else:
-                mode = root_stat.st_mode
-                uid, gid = root_stat.st_uid, root_stat.st_gid
-            destination_dir = os.path.dirname(destination)
-            try:
-                # Recursively create all the required directories, attempting
-                # to use the same mode as `root`.
-                os.makedirs(destination_dir, mode)
-            except os.error, e:
-                # This probably just means the leaf directory already exists,
-                # but if not, we'll find out when copying or linking anyway.
-                pass
-            else:
-                if None not in (uid, gid):
-                    os.lchown(destination_dir, uid, gid)
-        if link:
-            success = self.link_file(source, destination, interactive, dry_run)
-        else:
-            success = self.copy_file(source, destination, interactive, dry_run)
-        if success and None not in (uid, gid):
-            # Try to use the same ownership as `root`.
-            os.lchown(destination, uid, gid)
-
-    def copy_file(self, source, destination, interactive=False, dry_run=False):
-        "Attempt to copy `source` to `destination` and return True if successful."
-        if interactive:
-            exists = os.path.exists(destination) or os.path.islink(destination)
-            if exists:
-                print "The file %r already exists." % destination
-                if not self.prompt_overwrite(destination):
-                    return False
-        print "Copying %r to %r." % (source, destination)
-        if not dry_run:
-            try:
-                os.remove(destination)
-            except os.error, e:
-                pass
-            shutil.copy2(source, destination)
-            return True
-        return False
-
-    def link_file(self, source, destination, interactive=False, dry_run=False):
-        "Attempt to link to `source` from `destination` and return True if successful."
-        if sys.platform == 'win32':
-            message = "Linking is not supported by this platform (%s)."
-            raise os.error(message % sys.platform)
-
-        if interactive:
-            exists = os.path.exists(destination) or os.path.islink(destination)
-            if exists:
-                print "The file %r already exists." % destination
-                if not self.prompt_overwrite(destination):
-                    return False
-        if not dry_run:
-            try:
-                os.remove(destination)
-            except os.error, e:
-                pass
-        print "Linking to %r from %r." % (source, destination)
-        if not dry_run:
-            os.symlink(source, destination)
-            return True
-        return False
-
-    def prompt_overwrite(self, filename, default=True):
-        "Prompt the user to overwrite and return their selection as True or False."
-        yes_values = ['Y']
-        no_values = ['N']
-        if default:
-            prompt = "Overwrite? [Y/n]: "
-            yes_values.append('')
-        else:
-            prompt = "Overwrite? [y/N]: "
-            no_values.append('')
-        while True:
-            overwrite = raw_input(prompt).strip().upper()
-            if overwrite in yes_values:
+    def is_ignored(self, path, ignore_patterns):
+        """
+        Return True or False depending on whether the ``path`` should be
+        ignored (if it matches any pattern in ``ignore_patterns``).
+        
+        """
+        for pattern in ignore_patterns:
+            if fnmatch.fnmatchcase(path, pattern):
                 return True
-            elif overwrite in no_values:
-                return False
-            else:
-                print "Select 'Y' or 'N'."
+        return False
 
-    def filter_names(self, names, exclude=None, func=glob.fnmatch.filter):
-        if exclude is None:
-            exclude = []
-        elif isinstance(exclude, basestring):
-            exclude = exclude.split()
+    def copy_file(self, source, destination, source_storage,
+                  destination_storage, dry_run, **options):
+        """
+        Attempt to copy (or symlink) `source` to `destination`, returning True
+        if successful.
+        """
+        logger = self.get_logger()
+        if destination in options['copied_files']:
+            logger.warning("Skipping duplicate file: %s" % destination)
+            return False
+        if destination in options['copied_files']:
+            logger.warning("Copying file that would normally be provided by "
+                           "an excluded application: %s" % destination)
+            return False
+        source_path = source_storage.path(source)
+        if destination in options['destination_paths']:
+            if dry_run:
+                logger.info("Pretending to delete %r" % destination)
+            else:
+                logger.debug("Deleting %r" % destination)
+                destination_storage.delete(destination)
+        if options['link']:
+            destination_path = destination_storage.path(destination)
+            if dry_run:
+                logger.info("Pretending to symlink %r to %r" % (source_path,
+                                                            destination_path))
+            else:
+                logger.debug("Symlinking %r to %r" % (source_path,
+                                                      destination_path))
+                os.symlink(source_path, destination_path)
+        if dry_run:
+            logger.info("Pretending to copy %r to %r" % (source_path,
+                                                         destination))
         else:
-            exclude = [pattern for patterns in exclude for pattern in patterns.split()]
-        excluded_names = set(
-            [name for pattern in exclude for name in func(names, pattern)])
-        return set(names) - excluded_names
+            logger.debug("Copying %r to %r" % (source_path, destination))
+            if options['destination_local']:
+                destination_path = destination_storage.path(destination)
+                try:
+                    os.makedirs(os.path.dirname(destination_path))
+                except OSError:
+                    pass
+                shutil.copy2(source_path, destination_path)
+            else:
+                source_file = source_storage.open(source)
+                destination_storage.write(destination, source_file)
+        options['copied_files'].append(destination)
+        return True
