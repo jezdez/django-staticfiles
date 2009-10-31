@@ -22,7 +22,8 @@ class CommandLogger(object):
         name = '.'.join([part for part in parts if part])
         return logging.getLogger(name)
     
-    def handle(self, verbosity, *args, **kwargs):
+    def handle(self, *args, **kwargs):
+        verbosity = kwargs.get('verbosity', '1')
         logger = logging.getLogger(self.logger_parent or self.logger_name)
         logger.setLevel(self.logger_levels[verbosity])
         handler = logging.StreamHandler()
@@ -30,8 +31,7 @@ class CommandLogger(object):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         try:
-            return super(CommandLogger, self).handle(verbosity=verbosity,
-                                                     *args, **kwargs)
+            return super(CommandLogger, self).handle(*args, **kwargs)
         finally:
             logger.removeHandler(handler)
 
@@ -56,7 +56,7 @@ class BaseOptionalAppCommand(BaseCommand):
         app_list = []
         used = 0
         for app in all_apps:
-            app_label = app.__name__.split('.')[-1]
+            app_label = app.__name__.split('.')[-2]
             if not app_labels or app_label in app_labels:
                 used += 1
                 if app_label not in options['exclude']:
@@ -68,6 +68,9 @@ class BaseOptionalAppCommand(BaseCommand):
         # Handle all the apps (either via handle_app or excluded_app),
         # collating any output.
         output = []
+        pre_output = self.pre_handle_apps(**options)
+        if pre_output:
+            output.append(pre_output)
         for app in all_apps:
             if app in app_list:
                 handle_method = self.handle_app
@@ -76,7 +79,7 @@ class BaseOptionalAppCommand(BaseCommand):
             app_output = handle_method(app, **options)
             if app_output:
                 output.append(app_output)
-        post_output = self.post_handle(**options)
+        post_output = self.post_handle_apps(**options)
         if post_output:
             output.append(post_output)
         return '\n'.join(output)
@@ -96,7 +99,14 @@ class BaseOptionalAppCommand(BaseCommand):
         
         """
 
-    def post_output(self, app, **options):
+    def pre_handle_apps(self, **options):
+        """
+        A hook for commands to do something before the applications are
+        processed.
+        
+        """
+
+    def post_handle_apps(self, **options):
         """
         A hook for commands to do something after all applications have been
         processed.

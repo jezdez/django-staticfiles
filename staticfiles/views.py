@@ -3,8 +3,8 @@ Views and functions for serving static files. These are only to be used during
 development, and SHOULD NOT be used in a production setting.
 
 """
-from staticfiles.utils import get_media_path
 from django.views.static import serve as django_serve
+from staticfiles.resolvers import resolve
 
 
 def serve(request, path, show_indexes=False):
@@ -22,5 +22,5 @@ def serve(request, path, show_indexes=False):
     a template called ``static/directory_index``.
     
     """
-    return django_serve(request, path='', document_root=get_media_path(path),
+    return django_serve(request, path='', document_root=resolve(path),
                         show_indexes=show_indexes)

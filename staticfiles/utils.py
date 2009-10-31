@@ -1,65 +1,93 @@
+from django.core.files.storage import FileSystemStorage
+from staticfiles.settings import MEDIA_DIRNAMES, PREPEND_LABEL_APPS, \
+    EXCLUDED_APPS
+import fnmatch
 import os
-import sys
-
-from staticfiles.settings import ROOT, DIRS, MEDIA_DIRNAMES, APPS
 
 
-def get_media_path(path, all=False):
+def get_files_for_app(app, ignore_patterns=[]):
     """
-    Traverses the following locations to find a requested media file in the
-    given order and return the absolute file path:
-
-    1. The site media path, e.g. for user-contributed files, e.g.:
-        <project>/site_media/static/<path>
-    2. Any extra media locations given in the settings
-    4. Installed apps:
-        a) <app>/media/<app>/<path>
-        b) <app>/media/<path>
+    Return a list containing the relative source paths for all files that
+    should be copied for an app.
+    
     """
-    collection = []
-    locations = [ROOT] + [root for label, root in DIRS]
-    for location in locations:
-        media = os.path.join(location, path)
-        if os.path.exists(media):
-            if not all:
-                return media
-            collection.append(media)
-
-    installed_apps = APPS
-    app_labels = [label.split('.')[-1] for label in installed_apps]
-    for app in installed_apps:
-        app_mod = import_module(app)
-        app_root = os.path.dirname(app_mod.__file__)
-        for media_dir in MEDIA_DIRNAMES:
-            media = os.path.join(app_root, media_dir, path)
-            if os.path.exists(media):
-                if not all:
-                    return media
-                collection.append(media)
-            splitted_path = path.split('/', 1)
-            if len(splitted_path) > 1:
-                app_name, newpath = splitted_path
-                if app_name in app_labels:
-                    media = os.path.join(app_root, media_dir, newpath)
-                    if os.path.exists(media):
-                        if not all:
-                            return media
-                        collection.append(media)
-    return collection or None
+    prefix = get_app_prefix(app)
+    files = []
+    for storage in app_static_storages(app):
+        for path in get_files(storage, ignore_patterns):
+            if prefix:
+                path = '/'.join([prefix, path])
+            files.append(path)
+    return files
 
 
-def _resolve_name(name, package, level):
-    """Return the absolute name of the module to be imported."""
-    if not hasattr(package, 'rindex'):
-        raise ValueError("'package' not set to a string")
-    dot = len(package)
-    for x in xrange(level, 1, -1):
-        try:
-            dot = package.rindex('.', 0, dot)
-        except ValueError:
-            raise ValueError("attempted relative import beyond top-level "
-                              "package")
-    return "%s.%s" % (package[:dot], name)
+def app_static_storages(app):
+    """
+    A generator which yields the potential static file storages for an app.
+    
+    Excluded apps do not yield any storages
+    
+    Only storages for valid locations are yielded.
+    
+    """
+    # "app" is actually the models module of the app. Remove the '.models'. 
+    app_module = '.'.join(app.__name__.split('.')[:-1])
+    if app_module in EXCLUDED_APPS:
+        return
+    # The models module may be a package in which case dirname(app.__file__)
+    # would be wrong. Import the actual app as opposed to the models module.
+    app = dynamic_import(app_module) 
+    app_root = os.path.dirname(app.__file__)
+
+    for media_dirname in MEDIA_DIRNAMES:
+        location = os.path.join(app_root, media_dirname)
+        if not os.path.isdir(location):
+            continue
+        yield FileSystemStorage(location=location)
+
+
+def get_app_prefix(app):
+    """
+    Return the path name that should be prepended to files for this app.
+    
+    """
+    # "app" is actually the models module of the app. Remove the '.models'. 
+    bits = app.__name__.split('.')[:-1]
+    app_name = bits[-1]
+    app_module = '.'.join(bits)
+    if app_module in PREPEND_LABEL_APPS:
+        return app_name
+
+
+def get_files(storage, ignore_patterns=[], location=''):
+    """
+    Recursively walk the storage directories gathering a complete list of files
+    that should be copied, returning this list.
+    
+    """
+
+    def is_ignored(path):
+        """
+        Return True or False depending on whether the ``path`` should be
+        ignored (if it matches any pattern in ``ignore_patterns``).
+        
+        """
+        for pattern in ignore_patterns:
+            if fnmatch.fnmatchcase(path, pattern):
+                return True
+        return False
+
+    directories, files = storage.listdir(location)
+    static_files = [location and '/'.join([location, fn]) or fn
+                    for fn in files
+                    if not is_ignored(fn)]
+    for dir in directories:
+        if is_ignored(dir):
+            continue
+        if location:
+            dir = '/'.join([location, dir])
+        static_files.extend(get_files(storage, ignore_patterns, dir))
+    return static_files
 
 
 def dynamic_import(import_string):

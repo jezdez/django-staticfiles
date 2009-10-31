@@ -1,4 +1,3 @@
-import fnmatch
 import os
 import shutil
 import sys
@@ -8,8 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.management.base import CommandError
 
 from staticfiles.management.base import OptionalAppCommand
-from staticfiles.settings import DIRS, EXCLUDED_APPS, MEDIA_DIRNAMES, \
-    STORAGE, PREPEND_LABEL_APPS
+from staticfiles.settings import DIRS, STORAGE
 from staticfiles import utils
 
 try:
@@ -39,16 +37,17 @@ class Command(OptionalAppCommand):
         make_option('-l', '--link', action='store_true', dest='link',
             help="Create a symbolic link to each file instead of copying."),
     )
-    help = ("Collect media files from apps and other locations in a single "
-            "media directory.")
+    help = ("Copy static media files from apps and other locations in a "
+            "single location.")
 
-    def handle(self, ignore_patterns, *app_labels, **options):
+    def handle(self, *app_labels, **options):
+        ignore_patterns = options['ignore_patterns']
         options['skipped_files'] = []
         options['copied_files'] = []
         storage = utils.dynamic_import(STORAGE)()
         options['destination_storage'] = storage
         try:
-            destination_paths = self.get_files(storage, ignore_patterns)
+            destination_paths = utils.get_files(storage, ignore_patterns)
         except OSError:
             # The destination storage location may not exist yet. It'll get
             # created when the first file is copied.
@@ -77,24 +76,21 @@ This will overwrite existing files. Are you sure you want to do this?
 Type 'yes' to continue, or 'no' to cancel: """)
             if confirm != 'yes':
                 raise CommandError("Static files build cancelled.")
-        for name, dir in DIRS:
-            self.handle_dir(dir=dir, ignore_patterns=ignore_patterns,
-                            destination_prepend=name, **options)
-        return super(Command, self).handle(ignore_patterns=ignore_patterns,
-                                           *app_labels, **options)
+        return super(Command, self).handle(*app_labels, **options)
 
-    def handle_dir(self, dir, ignore_patterns, destination_prepend, **options):
+    def pre_handle_apps(self, **options):
         """
         Copy all files from a directory.
         
         """
-        source_storage = FileSystemStorage(location=dir)
-        for source in self.get_files(source_storage, ignore_patterns):
-            destination = self.destination_prepend(source,
-                                                   destination_prepend)
-            self.copy_file(source, destination, source_storage, **options)
+        ignore_patterns = options['ignore_patterns']
+        for prefix, root in DIRS:
+            source_storage = FileSystemStorage(location=root)
+            for source in self.get_files(source_storage, ignore_patterns):
+                self.copy_file(source, prefix, source_storage, **options)
 
-    def post_handle(self, copied_files, **options):
+    def post_handle_apps(self, **options):
+        copied_files = options['copied_files']
         logger = self.get_logger()
         count = len(copied_files)
         logger.info("%s static file%s built." % (count,
@@ -105,9 +101,13 @@ Type 'yes' to continue, or 'no' to cancel: """)
         Copy all static media files from an application.
         
         """
-        self.get_files_for_app(app, copy=True, **options)
+        ignore_patterns = options['ignore_patterns']
+        prefix = utils.get_app_prefix(app)
+        for storage in utils.app_static_storages(app):
+            for path in utils.get_files(storage, ignore_patterns):
+                self.copy_file(path, prefix, storage, **options)
 
-    def excluded_app(self, app, skipped_files, **options):
+    def excluded_app(self, app, **options):
         """
         Gather all the static media files for excluded apps.
         
@@ -115,111 +115,52 @@ Type 'yes' to continue, or 'no' to cancel: """)
         normally be copied by excluded apps.
         
         """
-        all_files = self.get_files_for_app(app, **options)
+        skipped_files = options['skipped_files']
+        ignore_patterns = options['ignore_patterns']
+        all_files = utils.get_files_for_app(app, ignore_patterns)
         skipped_files.extend(all_files)
 
-    def get_files_for_app(self, app, ignore_patterns, destination_storage,
-                          dry_run, copy=False, **options):
-        """
-        Return a list of tuples containing the relative destination paths for
-        all files that should be copied for an app.
-        
-        If ``copy`` argument is True, the files are actually copied.
-        
-        """
-        logger = self.get_logger()
-        if app in EXCLUDED_APPS:
-            return []
-        bits = app.__name__.split('.')[:-1]
-        app_name = bits[-1]
-        if '.'.join(bits) in PREPEND_LABEL_APPS:
-            destination_prepend = app_name
-        else:
-            destination_prepend = None
-        app_root = os.path.dirname(app.__file__)
-        destination_paths = []
-        for media_dirname in MEDIA_DIRNAMES:
-            location = os.path.join(app_root, media_dirname)
-            if not os.path.isdir(location):
-                continue
-            logger.debug('Media location %r found for %r app.' %
-                         (media_dirname, app_name))
-            source_storage = FileSystemStorage(location=location)
-            for source in self.get_files(source_storage, ignore_patterns):
-                if destination_prepend:
-                    destination = '/'.join([destination_prepend, source])
-                else:
-                    destination = source
-                if copy:
-                    self.copy_file(source, destination, source_storage,
-                                   destination_storage, dry_run, **options)
-                destination_paths.append(destination)
-        return destination_paths
-
-    def get_files(self, storage, ignore_patterns, location=''):
-        """
-        Recursively walk the storage directories gathering a complete list of
-        files that should be copied, returning this list.
-        
-        """
-        directories, files = storage.listdir(location)
-        static_files = [location and '/'.join([location, fn]) or fn
-                        for fn in files
-                        if not self.is_ignored(fn, ignore_patterns)]
-        for dir in directories:
-            if self.is_ignored(dir, ignore_patterns):
-                continue
-            if location:
-                dir = '/'.join([location, dir])
-            static_files.extend(self.get_files(storage, ignore_patterns, dir))
-        return static_files
-
-    def is_ignored(self, path, ignore_patterns):
-        """
-        Return True or False depending on whether the ``path`` should be
-        ignored (if it matches any pattern in ``ignore_patterns``).
-        
-        """
-        for pattern in ignore_patterns:
-            if fnmatch.fnmatchcase(path, pattern):
-                return True
-        return False
-
-    def copy_file(self, source, destination, source_storage,
-                  destination_storage, dry_run, **options):
+    def copy_file(self, source, destination_prefix, source_storage, **options):
         """
         Attempt to copy (or symlink) `source` to `destination`, returning True
         if successful.
         """
+        destination_storage = options['destination_storage']
+        dry_run = options['dry_run']
         logger = self.get_logger()
+        if destination_prefix:
+            destination = '/'.join([destination_prefix, source])
+        else:
+            destination = source
+
         if destination in options['copied_files']:
-            logger.warning("Skipping duplicate file: %s" % destination)
+            logger.warning("Skipping duplicate file (already copied earlier):"
+                           "\n  %s" % destination)
             return False
-        if destination in options['copied_files']:
+        if destination in options['skipped_files']:
             logger.warning("Copying file that would normally be provided by "
-                           "an excluded application: %s" % destination)
-            return False
+                           "an excluded application:\n  %s" % destination)
         source_path = source_storage.path(source)
         if destination in options['destination_paths']:
             if dry_run:
-                logger.info("Pretending to delete %r" % destination)
+                logger.info("Pretending to delete:\n  %s" % destination)
             else:
-                logger.debug("Deleting %r" % destination)
+                logger.debug("Deleting:\n  %s" % destination)
                 destination_storage.delete(destination)
         if options['link']:
             destination_path = destination_storage.path(destination)
             if dry_run:
-                logger.info("Pretending to symlink %r to %r" % (source_path,
-                                                            destination_path))
+                logger.info("Pretending to symlink:\n  %s\nto:\n  %s" %
+                            (source_path, destination_path))
             else:
-                logger.debug("Symlinking %r to %r" % (source_path,
-                                                      destination_path))
+                logger.debug("Symlinking:\n  %s\nto:\n  %s" %
+                             (source_path, destination_path))
                 os.symlink(source_path, destination_path)
         if dry_run:
-            logger.info("Pretending to copy %r to %r" % (source_path,
-                                                         destination))
+            logger.info("Pretending to copy:\n  %s\nto:\n  %s" %
+                        (source_path, destination))
         else:
-            logger.debug("Copying %r to %r" % (source_path, destination))
+            logger.debug("Copying:\n  %s\nto:\n  %s" % (source_path, destination))
             if options['destination_local']:
                 destination_path = destination_storage.path(destination)
                 try:

@@ -1,17 +1,18 @@
-import os
 from django.core.management.base import LabelCommand
-from staticfiles.utils import get_media_path
+from staticfiles import resolvers
+import os
+import sys
+
 
 class Command(LabelCommand):
-    help = "Finds the location of the given media by resolving its path."
-    args = "[media_path]"
-    label = 'media path'
+    help = "Finds the absolute path for the given static file."
+    args = "[static_file]"
+    label = 'static file'
 
     def handle_label(self, media_path, **options):
-        print "Resolving %s:" % media_path
-        paths = get_media_path(media_path, all=True)
-        if paths is None:
-            print "  No media found."
+        paths = resolvers.resolve(media_path, all=True)
+        if not paths:
+            print "No matching file found."
         else:
             for path in paths:
-                print u"  %s" % os.path.realpath(path)
+                print os.path.realpath(path)
