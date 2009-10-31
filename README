@@ -17,14 +17,14 @@ Helpers
 =======
 
 build_static management command
-------------------------------
+-------------------------------
 
 The build_static script collects the media files from all installed apps and
-arranges them under the ``STATIC_ROOT`` folder::
+copies them to the ``STATICFILES_STORAGE``::
 
-    $ python manage.py build_static --all
+    $ python manage.py build_static
 
-Alternatively you can pass a list of apps to the command::
+Alternatively, you can limit the apps a list of apps to the command::
 
     $ python manage.py build_static admin polls
 
@@ -35,7 +35,8 @@ files with your custom app, for example. Remember to remove the
 ``STATIC_ROOT`` folder before you use this option or the script will prompt 
 you for each file.
 
-Please also refer to the help of the build_static management command by running::
+Please also refer to the help of the build_static management command by
+running::
 
     $ python manage.py build_static --help
 
@@ -98,6 +99,9 @@ The absolute path to the directory that holds static files like app media::
 
     STATIC_ROOT = "/home/polls.com/polls/site_media/static/"
 
+This is only used by the default static files storage (i.e. if you use a
+different ``STATICFILES_STORAGE``, you don't need to set this).
+
 STATIC_URL
 ----------
 
@@ -120,11 +124,12 @@ This setting defines the additional locations the ``staticfiles`` app will
 traverse when looking for media files, e.g. if you use the ``build_static``
 or ``resolve_static`` management command or use the static file serving view.
 
-It should be defined as a sequence of ``(label, path)`` tuples, e.g.::
+It should be defined as a sequence of ``(prefix, path)`` tuples, e.g.::
 
     STATICFILES_DIRS = (
         ('special_polls', '/home/special.polls.com/polls/media'),
         ('polls', '/home/polls.com/polls/media'),
+        ('', '/home/polls.com/core/media/'),
     )
 
 STATICFILES_PREPEND_LABEL_APPS
@@ -132,8 +137,10 @@ STATICFILES_PREPEND_LABEL_APPS
 
 :Default: ``('django.contrib.admin',)``
 
-A sequence of app paths that have the media files in ``<app>/media``, not in
-``<app>/media/<app>``, e.g. ``django.contrib.admin``.
+A sequence of app paths that should be prefixed with the label name.
+For example, ``django.contrib.admin`` media files should be served from
+``admin/[js,css,images]`` rather than the media files getting served directly
+from the static root.
 
 STATICFILES_MEDIA_DIRNAMES
 ---------------------------
@@ -162,6 +169,13 @@ files::
         'old.company.app',
     )
 
+STATICFILES_STORAGE
+-------------------
+
+:Default: ``'staticfiles.storage.StaticFileStorage'``
+
+The storage to use for copying static files to a single location. 
+
 
 Changelog:
 ==========
@@ -173,10 +187,14 @@ development
   avoid confusions between Django's use of the term "media" (for uploads) and
   "static" files.
 
+* Rework most of the internal logic, abstracting the core functionality away
+  from the management commands.
+
 v0.1.2 (2009-09-02):
 --------------------
 
 * Fixed a typo in settings.py
+
 * Fixed a conflict in build_media (now build_static) between handling
   non-namespaced app media and other files with the same relative path.
 
