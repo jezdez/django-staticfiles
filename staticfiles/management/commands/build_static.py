@@ -28,23 +28,30 @@ class Command(OptionalAppCommand):
         make_option('--noinput', action='store_false', dest='interactive',
             default=True, help="Do NOT prompt the user for input of any "
                 "kind."),
-        make_option('-i', '--ignore', action='append',
-            default=['CVS', '.*', '*~'], dest='ignore_patterns',
-            metavar='PATTERNS', help="A space-delimited list of glob-style "
-                "patterns to ignore. Use multiple times to add more."),
+        make_option('-i', '--ignore', action='append', default=[],
+            dest='ignore_patterns', metavar='PATTERN',
+            help="Ignore files or directories matching this glob-style "
+                "pattern. Use multiple times to ignore more."),
         make_option('-n', '--dry-run', action='store_true', dest='dry_run',
             help="Do everything except modify the filesystem."),
         make_option('-l', '--link', action='store_true', dest='link',
             help="Create a symbolic link to each file instead of copying."),
         make_option('--exclude-dirs', action='store_true',
-            help="Exclude additional static locations specified in the"
+            help="Exclude additional static locations specified in the "
                 "STATICFILES_DIRS setting."),
+        make_option('--no-default-ignore', action='store_false',
+            dest='use_default_ignore_patterns', default=True,
+            help="Don't ignore the common private glob-style patterns 'CVS', "
+                "'.*' and '*~'."),
     )
     help = ("Copy static media files from apps and other locations in a "
             "single location.")
 
     def handle(self, *app_labels, **options):
         ignore_patterns = options['ignore_patterns']
+        if options['use_default_ignore_patterns']:
+            ignore_patterns += ['CVS', '.*', '*~']
+            options['ignore_patterns'] = ignore_patterns 
         options['skipped_files'] = []
         options['copied_files'] = []
         storage = utils.dynamic_import(STORAGE)()

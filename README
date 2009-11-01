@@ -13,82 +13,100 @@ You can also install the `in-development version`_ of django-staticfiles with
 .. _bitbucket.org/jezdez/django-staticfiles: http://bitbucket.org/jezdez/django-staticfiles/
 .. _in-development version: http://bitbucket.org/jezdez/django-staticfiles/get/tip.gz#egg=django-staticfiles-dev
 
-Helpers
-=======
 
-build_static management command
--------------------------------
+Management Commands
+===================
 
-The build_static script collects the media files from all installed apps and
-copies them to the ``STATICFILES_STORAGE``::
+build_static
+------------
 
-    $ python manage.py build_static
+Collects the media files from all installed apps and copies them to the
+``STATICFILES_STORAGE``.
 
-Alternatively, you can limit the apps a list of apps to the command::
+You can limit the apps parsed by providing a list of app names::
 
-    $ python manage.py build_static admin polls
+    $ python manage.py build_static --exclude-dirs admin polls
 
-In case you have two apps with the same file name and relative path you should
-use the ``--interactive`` option of ``build_static`` which will prompt you to 
-choose which one to use. This is useful if you want to overwrite default media
-files with your custom app, for example. Remember to remove the 
-``STATIC_ROOT`` folder before you use this option or the script will prompt 
-you for each file.
+Duplicate file names are resolved in a similar way to how template resolution
+works. Files are initially searched for in STATICFILES_DIRS_ locations,
+followed by apps in the order specified by the INSTALLED_APPS setting.
 
-Please also refer to the help of the build_static management command by
-running::
+Some commonly used options are:
 
+``--noinput``
+  Do NOT prompt the user for input of any kind.
+``-i PATTERN`` or ``--ignore=PATTERN``
+  Ignore files or directories matching this glob-style pattern. Use multiple
+  times to ignore more.
+``-n`` or ``--dry-run``
+  Do everything except modify the filesystem.
+``-l`` or ``--link``
+  Create a symbolic link to each file instead of copying.
+``--exclude-dirs``
+  Exclude additional static locations specified in the ``STATICFILES_DIRS``
+  setting.
+
+For a full list of options, refer to the build_static management command help
+by running::
+ 
     $ python manage.py build_static --help
 
-resolve_static management command
---------------------------------
+resolve_static
+--------------
 
-To quickly resolve the full file path of a media file on the filesystem,
-you can pass its expected URL path(s) to the ``resolve_static`` management
-command, e.g.::
+Resolves one or more expected relative URL path to absolute paths of each media
+file on the filesystem. For example::
 
-    $ python manage.py resolve_static css/base.css
-    Resolving css/polls.css:
-        /home/polls.com/polls/media/css/polls.css
+    $ python manage.py resolve_static css/base.css admin/js/core.css
+    /home/special.polls.com/core/media/css/base.css
+    /home/polls.com/core/media/css/base.css
+    /home/polls.com/src/django/contrib/admin/media/js/core.js
 
-If multiple locations are found that match the given path
-it will list all of them, sorted by its importance.
+By default, all matching locations are found. To only return the first match
+for each relative path, use the ``--first`` option::
+
+    $ python manage.py resolve_static css/base.css --first
+    /home/special.polls.com/core/media/css/base.css
+
 
 static_url context processor
-----------------------------
+============================
 
-To refer to static file assets from a template:
+To refer to static file assets from a template, ensure you have set the
+STATIC_URL_ setting to the URL path where the static files are served.
 
-- set the ``STATIC_URL`` setting (see below) to the URL path where your
-  webserver serves the files located in ``STATIC_ROOT``.
+Next, add the ``static_url`` context processor to your
+``TEMPLATE_CONTEXT_PROCESSORS`` setting::
 
-- Add ``staticfiles.context_processors.static_url`` to your
-  ``TEMPLATE_CONTEXT_PROCESSORS`` setting.
+    TEMPLATE_CONTEXT_PROCESSORS = (
+        'staticfiles.context_processors.static_url',
+    )
 
-- Templates rendered with ``RequestContext`` will now have access to a
-  ``STATIC_URL`` context variable.
+Templates rendered with ``RequestContext`` will now have access to a
+``STATIC_URL`` context variable::
+
+    <link href="{{ STATIC_URL }}css/polls.css" rel="stylesheet" type="text/css" />
+
 
 Serving static files during development
-=========================================
+=======================================
 
 .. note:: Don't use this on production servers.
    This feature is **only intended for development**.
    Please, don't shoot yourself in the foot. Thanks.
 
-``staticfiles`` provides the static file serving view
-``staticfiles.views.serve`` to handle the app media, media files defined
-with the ``STATICFILES_DIRS`` setting and other media files found in the
-``MEDIA_ROOT`` directory. Make sure your projects' urls.py contains the
-following snippet below the rest of the url configuration::
+To serve static media for both ``MEDIA_URL`` and ``STATIC_URL`` add the
+following snippet to your end of your primary URL configuration::
 
     from django.conf import settings
     if settings.DEBUG:
         urlpatterns += patterns('', 
-            (r'^site_media/', include('staticfiles.urls')),
+            (r'', include('staticfiles.urls')),
         )
 
-Setting
-=======
+
+Settings
+========
 
 STATIC_ROOT
 -----------
@@ -111,12 +129,10 @@ URL that handles the files served from STATIC_ROOT, e.g.::
 
     STATIC_URL = '/site_media/static/'
 
-Note that this should have a trailing slash if it has a path component.
-
-Good: "http://www.example.com/static/" Bad: "http://www.example.com/static"
+Note that this should **always** have a trailing slash.
 
 STATICFILES_DIRS
------------------------
+----------------
 
 :Default: ``[]``
 
@@ -127,9 +143,9 @@ or ``resolve_static`` management command or use the static file serving view.
 It should be defined as a sequence of ``(prefix, path)`` tuples, e.g.::
 
     STATICFILES_DIRS = (
-        ('special_polls', '/home/special.polls.com/polls/media'),
-        ('polls', '/home/polls.com/polls/media'),
-        ('', '/home/polls.com/core/media/'),
+        ('', '/home/special.polls.com/polls/media'),
+        ('', '/home/polls.com/polls/media'),
+        ('common', '/opt/webfiles/common'),
     )
 
 STATICFILES_PREPEND_LABEL_APPS
@@ -143,7 +159,7 @@ For example, ``django.contrib.admin`` media files should be served from
 from the static root.
 
 STATICFILES_MEDIA_DIRNAMES
----------------------------
+--------------------------
 
 :Default: ``('media',)``
 
@@ -177,8 +193,8 @@ STATICFILES_STORAGE
 The storage to use for copying static files to a single location. 
 
 
-Changelog:
-==========
+Changelog
+=========
 
 development
 -----------
