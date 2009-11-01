@@ -6,9 +6,11 @@ import os
 
 def resolve(path, all=False):
     """
-    Find a requested static file, first looking in the static location (if
-    local), next in any defined extra media locations and finally in any (non-
-    excluded) installed apps.
+    Find a requested static file, first looking in any defined extra media
+    locations and next in any (non-excluded) installed apps.
+    
+    If no matches are found and the static location is local, look for a match
+    there too.
     
     If ``all`` is ``False`` (default), return the first matching resolved
     absolute path (or ``None`` if no match). Otherwise return a list of
@@ -17,20 +19,7 @@ def resolve(path, all=False):
     """
     matches = []
     
-    # Look for the file in the static files storage (if local).
-    static_storage = utils.dynamic_import(STORAGE)()
-    try:
-        static_storage.path('')
-    except NotImplementedError:
-        pass
-    else:
-        if static_storage.exists(path):
-            matched_path = static_storage.path(path)
-            if not all:
-                return matched_path
-            matches.append(matched_path)
-    
-    # Next look for the file in the extra media locations.
+    # First look for the file in the extra media locations.
     for root, prefix in DIRS:
         matched_path = resolve_for_location(root, path, prefix)
         if matched_path:
@@ -38,7 +27,7 @@ def resolve(path, all=False):
                 return matched_path
             matches.append(matched_path)
 
-    # Finally, look for the file in the apps. 
+    # Next, look for the file in the apps. 
     for app in models.get_apps():
         app_matches = resolve_for_app(app, path, all=all)
         if app_matches:
@@ -46,7 +35,25 @@ def resolve(path, all=False):
                 return app_matches
             matches.extend(app_matches)
 
-    return matches
+    if matches:
+        return matches
+
+    # No match was found yet, look for the file in the static files storage (if
+    # local).
+    static_storage = utils.dynamic_import(STORAGE)()
+    try:
+        static_storage.path('')
+    except NotImplementedError:
+        pass
+    else:
+        if static_storage.exists(path):
+            match = static_storage.path(path)
+            if all:
+                match = [match]
+            return match
+
+    # No match.
+    return all and [] or None
 
 
 def resolve_for_location(root, path, prefix=None):
