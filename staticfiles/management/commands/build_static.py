@@ -36,6 +36,9 @@ class Command(OptionalAppCommand):
             help="Do everything except modify the filesystem."),
         make_option('-l', '--link', action='store_true', dest='link',
             help="Create a symbolic link to each file instead of copying."),
+        make_option('--exclude-dirs', action='store_true',
+            help="Exclude additional static locations specified in the"
+                "STATICFILES_DIRS setting."),
     )
     help = ("Copy static media files from apps and other locations in a "
             "single location.")
@@ -83,11 +86,12 @@ Type 'yes' to continue, or 'no' to cancel: """)
         Copy all files from a directory.
         
         """
-        ignore_patterns = options['ignore_patterns']
-        for prefix, root in DIRS:
-            source_storage = FileSystemStorage(location=root)
-            for source in self.get_files(source_storage, ignore_patterns):
-                self.copy_file(source, prefix, source_storage, **options)
+        if not options['exclude_dirs']:
+            ignore_patterns = options['ignore_patterns']
+            for prefix, root in DIRS:
+                source_storage = FileSystemStorage(location=root)
+                for source in self.get_files(source_storage, ignore_patterns):
+                    self.copy_file(source, prefix, source_storage, **options)
 
     def post_handle_apps(self, **options):
         copied_files = options['copied_files']
