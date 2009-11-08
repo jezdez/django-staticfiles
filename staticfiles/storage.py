@@ -1,6 +1,6 @@
-from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
+from staticfiles.settings import ROOT, URL
 
 class StaticFileStorage(FileSystemStorage):
     """
@@ -12,8 +12,8 @@ class StaticFileStorage(FileSystemStorage):
     """
     def __init__(self, location=None, base_url=None, *args, **kwargs):
         if location is None:
-            location = settings.STATIC_ROOT
+            location = ROOT
         if base_url is None:
-            base_url = settings.STATIC_URL
+            base_url = URL
         super(StaticFileStorage, self).__init__(location, base_url,
                                                 *args, **kwargs)
