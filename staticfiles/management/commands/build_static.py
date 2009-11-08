@@ -146,7 +146,7 @@ Type 'yes' to continue, or 'no' to cancel: """)
         dry_run = options['dry_run']
         logger = self.get_logger()
         if destination_prefix:
-            destination = '/'.join([destination_prefix, source])
+            destination = os.path.join(destination_prefix, source)
         else:
             destination = source
 

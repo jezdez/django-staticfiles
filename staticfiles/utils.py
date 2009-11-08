@@ -15,7 +15,7 @@ def get_files_for_app(app, ignore_patterns=[]):
     for storage in app_static_storages(app):
         for path in get_files(storage, ignore_patterns):
             if prefix:
-                path = '/'.join([prefix, path])
+                path = os.path.join(prefix, path)
             files.append(path)
     return files
 
@@ -77,14 +77,14 @@ def get_files(storage, ignore_patterns=[], location=''):
         return False
 
     directories, files = storage.listdir(location)
-    static_files = [location and '/'.join([location, fn]) or fn
+    static_files = [location and os.path.join(location, fn) or fn
                     for fn in files
                     if not is_ignored(fn)]
     for dir in directories:
         if is_ignored(dir):
             continue
         if location:
-            dir = '/'.join([location, dir])
+            dir = os.path.join(location, dir)
         static_files.extend(get_files(storage, ignore_patterns, dir))
     return static_files
 
