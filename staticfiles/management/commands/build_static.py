@@ -54,6 +54,7 @@ class Command(OptionalAppCommand):
             options['ignore_patterns'] = ignore_patterns 
         options['skipped_files'] = []
         options['copied_files'] = []
+        options['symlinked_files'] = []
         storage = utils.dynamic_import(STORAGE)()
         options['destination_storage'] = storage
         try:
@@ -106,8 +107,9 @@ Type 'yes' to continue, or 'no' to cancel: """)
 
     def post_handle_apps(self, **options):
         copied_files = options['copied_files']
+        symlinked_files = options['symlinked_files']
         logger = self.get_logger()
-        count = len(copied_files)
+        count = len(copied_files) + len(symlinked_files)
         logger.info("%s static file%s built." % (count,
                                                  count != 1 and 's' or ''))
 
@@ -170,21 +172,27 @@ Type 'yes' to continue, or 'no' to cancel: """)
             else:
                 logger.debug("Symlinking:\n  %s\nto:\n  %s" %
                              (source_path, destination_path))
-                os.symlink(source_path, destination_path)
-        if dry_run:
-            logger.info("Pretending to copy:\n  %s\nto:\n  %s" %
-                        (source_path, destination))
-        else:
-            logger.debug("Copying:\n  %s\nto:\n  %s" % (source_path, destination))
-            if options['destination_local']:
-                destination_path = destination_storage.path(destination)
                 try:
                     os.makedirs(os.path.dirname(destination_path))
                 except OSError:
                     pass
-                shutil.copy2(source_path, destination_path)
+                os.symlink(source_path, destination_path)
+            options['symlinked_files'].append(destination)
+        else:
+            if dry_run:
+                logger.info("Pretending to copy:\n  %s\nto:\n  %s" %
+                            (source_path, destination))
             else:
-                source_file = source_storage.open(source)
-                destination_storage.write(destination, source_file)
-        options['copied_files'].append(destination)
+                logger.debug("Copying:\n  %s\nto:\n  %s" % (source_path, destination))
+                if options['destination_local']:
+                    destination_path = destination_storage.path(destination)
+                    try:
+                        os.makedirs(os.path.dirname(destination_path))
+                    except OSError:
+                        pass
+                    shutil.copy2(source_path, destination_path)
+                else:
+                    source_file = source_storage.open(source)
+                    destination_storage.write(destination, source_file)
+            options['copied_files'].append(destination)
         return True
