@@ -1,5 +1,5 @@
 import os
-from setuptools import setup, find_packages
+from distutils.core import setup
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -14,7 +14,11 @@ setup(
     license='BSD',
     url='http://bitbucket.org/jezdez/django-staticfiles/',
     download_url='http://bitbucket.org/jezdez/django-staticfiles/downloads/',
-    packages=find_packages(),
+    packages=[
+        'staticfiles',
+        'staticfiles.management',
+        'staticfiles.management.commands',
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
