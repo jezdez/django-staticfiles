@@ -1,8 +1,7 @@
+import logging
+from optparse import make_option
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand, CommandError
-from optparse import make_option
-import logging
-
 
 class CommandLogger(object):
     """

@@ -1,11 +1,13 @@
 import re
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 from django.conf import settings
+
+from staticfiles.settings import URL as STATIC_URL
 
 urlpatterns = []
 
-if ':' not in settings.STATIC_URL:
-    base_url = re.escape(settings.STATIC_URL[1:])
+if ':' not in STATIC_URL:
+    base_url = re.escape(STATIC_URL[1:])
     urlpatterns += patterns('staticfiles.views',
         url(r'^%s(?P<path>.*)$' % base_url, 'serve'),
     )

@@ -1,7 +1,7 @@
+import os
 from django.db import models
 from staticfiles import utils
 from staticfiles.settings import STORAGE, DIRS
-import os
 
 
 def resolve(path, all=False):

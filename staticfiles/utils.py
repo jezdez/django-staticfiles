@@ -1,9 +1,8 @@
+import os
+import fnmatch
 from django.core.files.storage import FileSystemStorage
 from staticfiles.settings import MEDIA_DIRNAMES, PREPEND_LABEL_APPS, \
     EXCLUDED_APPS
-import fnmatch
-import os
-
 
 def get_files_for_app(app, ignore_patterns=[]):
     """

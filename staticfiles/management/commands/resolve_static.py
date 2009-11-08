@@ -1,8 +1,9 @@
+import os
+from optparse import make_option
 from django.core.management.base import LabelCommand
+
 from staticfiles import resolvers
 from staticfiles.management.base import CommandLogger
-from optparse import make_option
-import os
 
 
 class Command(CommandLogger, LabelCommand):

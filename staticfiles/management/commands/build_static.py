@@ -1,6 +1,6 @@
 import os
-import shutil
 import sys
+import shutil
 from optparse import make_option
 
 from django.core.files.storage import FileSystemStorage
