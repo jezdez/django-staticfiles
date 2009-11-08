@@ -199,12 +199,16 @@ Changelog
 development
 -----------
 
-* Renamed build_media and resolve_media management commands to *_static as to
-  avoid confusions between Django's use of the term "media" (for uploads) and
-  "static" files.
+* Renamed build_media and resolve_media management commands to build_static
+  and resolve_media to avoid confusions between Django's use of the term
+  "media" (for uploads) and "static" files.
 
 * Rework most of the internal logic, abstracting the core functionality away
   from the management commands.
+
+* Use file system storage backend by default.
+
+* Removed --interactive option to streamline static file resolving.
 
 v0.1.2 (2009-09-02):
 --------------------
