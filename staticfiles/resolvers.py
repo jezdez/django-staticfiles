@@ -20,7 +20,11 @@ def resolve(path, all=False):
     matches = []
     
     # First look for the file in the extra media locations.
-    for root, prefix in DIRS:
+    for root in DIRS:
+        if isinstance(root, (list, tuple)):
+            prefix, root = root
+        else:
+            prefix = ''
         matched_path = resolve_for_location(root, path, prefix)
         if matched_path:
             if not all:

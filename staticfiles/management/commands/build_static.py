@@ -95,7 +95,11 @@ Type 'yes' to continue, or 'no' to cancel: """)
         """
         if not options['exclude_dirs']:
             ignore_patterns = options['ignore_patterns']
-            for prefix, root in DIRS:
+            for root in DIRS:
+                if isinstance(root, (list, tuple)):
+                    prefix, root = root
+                else:
+                    prefix = ''
                 source_storage = FileSystemStorage(location=root)
                 for source in self.get_files(source_storage, ignore_patterns):
                     self.copy_file(source, prefix, source_storage, **options)
