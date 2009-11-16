@@ -3,6 +3,7 @@ Views and functions for serving static files. These are only to be used during
 development, and SHOULD NOT be used in a production setting.
 
 """
+import os
 from django import http
 from django.views.static import serve as django_serve
 from staticfiles.resolvers import resolve
@@ -24,7 +25,8 @@ def serve(request, path, show_indexes=False):
     
     """
     absolute_path = resolve(path)
-    if not absolute_path:
+    absolute_path, filename = os.path.split(absolute_path)
+    if not absolute_path and not filename:
         raise http.Http404('%r could not be resolved to a static file.' % path)
-    return django_serve(request, path='', document_root=absolute_path,
+    return django_serve(request, path=filename, document_root=absolute_path,
                         show_indexes=show_indexes)
