@@ -69,7 +69,7 @@ def resolve_for_location(root, path, prefix=None):
     if prefix:
         prefix = '%s/' % prefix
         if not path.startswith(prefix):
-            return []
+            return None
         path = path[len(prefix):]
     path = os.path.join(root, path)
     if os.path.exists(path):
