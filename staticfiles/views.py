@@ -25,8 +25,8 @@ def serve(request, path, show_indexes=False):
     
     """
     absolute_path = resolve(path)
-    absolute_path, filename = os.path.split(absolute_path)
-    if not absolute_path and not filename:
+    if not absolute_path:
         raise http.Http404('%r could not be resolved to a static file.' % path)
+    absolute_path, filename = os.path.split(absolute_path)
     return django_serve(request, path=filename, document_root=absolute_path,
                         show_indexes=show_indexes)
