@@ -102,7 +102,7 @@ Type 'yes' to continue, or 'no' to cancel: """)
                 else:
                     prefix = ''
                 source_storage = FileSystemStorage(location=root)
-                for source in self.get_files(source_storage, ignore_patterns):
+                for source in utils.get_files(source_storage, ignore_patterns):
                     self.copy_file(source, prefix, source_storage, **options)
 
     def post_handle_apps(self, **options):
