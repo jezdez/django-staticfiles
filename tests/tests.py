@@ -115,14 +115,15 @@ class TestBuildStatic(TestCase, BaseFileResolutionTests):
     """
     Test ``build_static`` management command.
 
-    TODO: test -i, -n, -l, --exclude-dirs, --no-default-ignore
+    TODO: test -n, -l, --exclude-dirs, --no-default-ignore
           test alternate storages
 
     """
     def setUp(self):
         self._old_root = settings.ROOT
         self.root = settings.ROOT = mkdtemp()
-        call_command('build_static', interactive=False, verbosity='0')
+        call_command('build_static', interactive=False, verbosity='0',
+                     ignore_patterns=['*.ignoreme'])
 
     def tearDown(self):
         shutil.rmtree(self.root)
@@ -130,6 +131,13 @@ class TestBuildStatic(TestCase, BaseFileResolutionTests):
 
     def _get_file(self, filepath):
         return open(os.path.join(self.root, filepath)).read()
+
+    def test_ignore(self):
+        """
+        Test that -i patterns are ignored.
+
+        """
+        self.assertFileNotFound('test/test.ignoreme')
 
     
 class TestServeStatic(TestCase, BaseFileResolutionTests):
