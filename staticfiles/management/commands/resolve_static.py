@@ -21,6 +21,6 @@ class Command(CommandLogger, LabelCommand):
         match = resolvers.resolve(media_path, all=all)
         if not match:
             logger.warning("No matching file found for %r." % media_path)
-        if all:
+        elif all:
             match = '\n'.join([os.path.realpath(path) for path in match])
         return match

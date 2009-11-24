@@ -96,7 +96,7 @@ Serving static files during development
    Please, don't shoot yourself in the foot. Thanks.
 
 To serve static media for both ``MEDIA_URL`` and ``STATIC_URL`` add the
-following snippet to your end of your primary URL configuration::
+following snippet to the end of your primary URL configuration::
 
     from django.conf import settings
     if settings.DEBUG:

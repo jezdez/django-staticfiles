@@ -70,7 +70,7 @@ class Command(OptionalAppCommand):
         except NotImplementedError:
             destination_local = False
         options['destination_local'] = destination_local
-        if options['link']:
+        if options.get('link', False):
             if sys.platform == 'win32':
                 message = "Symlinking is not supported by this platform (%s)."
                 raise CommandError(message % sys.platform)
@@ -94,7 +94,7 @@ Type 'yes' to continue, or 'no' to cancel: """)
         Copy all files from a directory.
         
         """
-        if not options['exclude_dirs']:
+        if not options.get('exclude_dirs', False):
             ignore_patterns = options['ignore_patterns']
             for root in DIRS:
                 if isinstance(root, (list, tuple)):
@@ -143,7 +143,7 @@ Type 'yes' to continue, or 'no' to cancel: """)
         if successful.
         """
         destination_storage = options['destination_storage']
-        dry_run = options['dry_run']
+        dry_run = options.get('dry_run', False)
         logger = self.get_logger()
         if destination_prefix:
             destination = '/'.join([destination_prefix, source])
@@ -164,7 +164,7 @@ Type 'yes' to continue, or 'no' to cancel: """)
             else:
                 logger.debug("Deleting:\n  %s" % destination)
                 destination_storage.delete(destination)
-        if options['link']:
+        if options.get('link', False):
             destination_path = destination_storage.path(destination)
             if dry_run:
                 logger.info("Pretending to symlink:\n  %s\nto:\n  %s" %
