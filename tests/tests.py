@@ -107,8 +107,8 @@ class TestResolveStatic(TestCase, BaseFileResolutionTests):
         finally:
             sys.stdout = _stdout
         self.assertEquals(len(lines), 2)
-        self.failUnless(lines[0].endswith('project/static/test/file.txt'))
-        self.failUnless(lines[1].endswith('apps/test/media/test/file.txt'))
+        self.failUnless('project' in lines[0])
+        self.failUnless('apps' in lines[1])
 
         
 class TestBuildStatic(TestCase, BaseFileResolutionTests):
