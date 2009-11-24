@@ -11,24 +11,12 @@ from django.core.management import call_command
 
 from staticfiles import settings
 
-class TestResolveStatic(TestCase):
+class BaseFileResolutionTests:
     """
-    Test ``resolve_static`` management command.
-
-    TODO: test without --first, test STATICFILES_MEDIA_DIRNAMES
+    Tests shared by all file-resolving features (build_static,
+    resolve_static, and static serve view).
 
     """
-    def _get_file(self, filepath):
-        _stdout = sys.stdout
-        sys.stdout = StringIO()
-        try:
-            call_command('resolve_static', filepath, all=False, verbosity='0')
-            sys.stdout.seek(0)
-            contents = open(sys.stdout.read().strip()).read()
-        finally:
-            sys.stdout = _stdout
-        return contents
-
     def assertFileContains(self, filepath, text):
         self.failUnless(text in self._get_file(filepath),
                         "'%s' not in '%s'" % (text, filepath))
@@ -80,8 +68,26 @@ class TestResolveStatic(TestCase):
         """
         self.assertFileNotFound('skip/skip_file.txt')
 
+class TestResolveStatic(TestCase, BaseFileResolutionTests):
+    """
+    Test ``resolve_static`` management command.
+
+    TODO: test without --first, test STATICFILES_MEDIA_DIRNAMES
+
+    """
+    def _get_file(self, filepath):
+        _stdout = sys.stdout
+        sys.stdout = StringIO()
+        try:
+            call_command('resolve_static', filepath, all=False, verbosity='0')
+            sys.stdout.seek(0)
+            contents = open(sys.stdout.read().strip()).read()
+        finally:
+            sys.stdout = _stdout
+        return contents
+
         
-class TestBuildStatic(TestResolveStatic):
+class TestBuildStatic(TestCase, BaseFileResolutionTests):
     """
     Test ``build_static`` management command.
 
@@ -102,7 +108,7 @@ class TestBuildStatic(TestResolveStatic):
         return open(os.path.join(self.root, filepath)).read()
 
     
-class TestServeStatic(TestResolveStatic):
+class TestServeStatic(TestCase, BaseFileResolutionTests):
     """
     Test static asset serving view.
 
