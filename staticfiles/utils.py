@@ -37,7 +37,6 @@ def app_static_storages(app):
     # would be wrong. Import the actual app as opposed to the models module.
     app = dynamic_import(app_module) 
     app_root = os.path.dirname(app.__file__)
-
     for media_dirname in MEDIA_DIRNAMES:
         location = os.path.join(app_root, media_dirname)
         if not os.path.isdir(location):

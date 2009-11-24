@@ -68,11 +68,19 @@ class BaseFileResolutionTests:
         """
         self.assertFileNotFound('skip/skip_file.txt')
 
+    def test_staticfiles_media_dirnames(self):
+        """
+        Can find a file in an app subdirectory whose name is listed in
+        STATICFILES_MEDIA_DIRNAMES setting.
+
+        """
+        self.assertFileContains('odfile.txt', 'File in otherdir.')
+
 class TestResolveStatic(TestCase, BaseFileResolutionTests):
     """
     Test ``resolve_static`` management command.
 
-    TODO: test without --first, test STATICFILES_MEDIA_DIRNAMES
+    TODO: test without --first
 
     """
     def _get_file(self, filepath):

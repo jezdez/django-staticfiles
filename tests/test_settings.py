@@ -19,6 +19,7 @@ STATIC_ROOT = join(TEST_ROOT, 'project', 'site_media', 'static')
 STATICFILES_DIRS = (('', join(TEST_ROOT, 'project', 'static')),)
 STATICFILES_PREPEND_LABEL_APPS = ('tests.apps.no_label',)
 STATICFILES_EXCLUDED_APPS = ('tests.apps.skip',)
+STATICFILES_MEDIA_DIRNAMES = ('media', 'otherdir')
 
 ROOT_URLCONF = 'tests.urls'
 
