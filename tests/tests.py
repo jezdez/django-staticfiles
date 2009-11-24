@@ -173,17 +173,6 @@ class TestBuildStatic(BuildStaticTestCase, BaseFileResolutionTests):
         self.assertFileNotFound('test/CVS')
 
 
-    if sys.platform == 'win32':
-        def test_link_error_on_win32(self):
-            """
-            Using ``--link`` raises an error on Win32.
-            
-            """
-            self.assertRaises(CommandError,
-                              self.run_build_static,
-                              link=True)
-    
-        
 class TestBuildStaticExcludeNoDefaultIgnore(BuildStaticTestCase):
     """
     Test ``--exclude-dirs`` and ``--no-default-ignore`` options for
