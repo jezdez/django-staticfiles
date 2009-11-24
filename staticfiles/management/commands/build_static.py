@@ -154,6 +154,10 @@ Type 'yes' to continue, or 'no' to cancel: """)
             logger.warning("Skipping duplicate file (already copied earlier):"
                            "\n  %s" % destination)
             return False
+        if destination in options['symlinked_files']:
+            logger.warning("Skipping duplicate file (already linked earlier):"
+                           "\n  %s" % destination)
+            return False
         if destination in options['skipped_files']:
             logger.warning("Copying file that would normally be provided by "
                            "an excluded application:\n  %s" % destination)

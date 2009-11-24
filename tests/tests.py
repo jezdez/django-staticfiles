@@ -8,9 +8,25 @@ import posixpath
 from django.test import TestCase, Client
 from django.conf import settings as django_settings
 from django.core.management import call_command
+from django.core.management.base import CommandError
 
 from staticfiles import settings
 
+class UtilityAssertsTestCase(TestCase):
+    """
+    Test case with a couple utility assertions.
+
+    """
+    def assertFileContains(self, filepath, text):
+        self.failUnless(text in self._get_file(filepath),
+                        "'%s' not in '%s'" % (text, filepath))
+
+    def assertFileNotFound(self, filepath):
+        self.assertRaises(IOError, self._get_file, filepath)
+
+    def _get_file(self, filepath):
+        raise NotImplementedError
+        
 class BaseFileResolutionTests:
     """
     Tests shared by all file-resolving features (build_static,
@@ -76,7 +92,7 @@ class BaseFileResolutionTests:
         """
         self.assertFileContains('odfile.txt', 'File in otherdir.')
 
-class TestResolveStatic(TestCase, BaseFileResolutionTests):
+class TestResolveStatic(UtilityAssertsTestCase, BaseFileResolutionTests):
     """
     Test ``resolve_static`` management command.
 
@@ -111,19 +127,19 @@ class TestResolveStatic(TestCase, BaseFileResolutionTests):
         self.failUnless('apps' in lines[1])
 
         
-class TestBuildStatic(TestCase, BaseFileResolutionTests):
+class BuildStaticTestCase(UtilityAssertsTestCase):
     """
-    Test ``build_static`` management command.
-
-    TODO: test -n, -l, --exclude-dirs, --no-default-ignore
-          test alternate storages
+    Base setup for build_static tests.
 
     """
     def setUp(self):
         self._old_root = settings.ROOT
         self.root = settings.ROOT = mkdtemp()
+        self.run_build_static()
+
+    def run_build_static(self, **kwargs):
         call_command('build_static', interactive=False, verbosity='0',
-                     ignore_patterns=['*.ignoreme'])
+                     ignore_patterns=['*.ignoreme'], **kwargs)
 
     def tearDown(self):
         shutil.rmtree(self.root)
@@ -132,6 +148,14 @@ class TestBuildStatic(TestCase, BaseFileResolutionTests):
     def _get_file(self, filepath):
         return open(os.path.join(self.root, filepath)).read()
 
+
+class TestBuildStatic(BuildStaticTestCase, BaseFileResolutionTests):
+    """
+    Test ``build_static`` management command.
+
+    TODO: test alternate storages
+
+    """
     def test_ignore(self):
         """
         Test that -i patterns are ignored.
@@ -139,8 +163,94 @@ class TestBuildStatic(TestCase, BaseFileResolutionTests):
         """
         self.assertFileNotFound('test/test.ignoreme')
 
+    def test_common_ignore_patterns(self):
+        """
+        Common ignore patterns (*~, .*, CVS) are ignored.
+
+        """
+        self.assertFileNotFound('test/.hidden')
+        self.assertFileNotFound('test/backup~')
+        self.assertFileNotFound('test/CVS')
+
+
+    if sys.platform == 'win32':
+        def test_link_error_on_win32(self):
+            """
+            Using ``--link`` raises an error on Win32.
+            
+            """
+            self.assertRaises(CommandError,
+                              self.run_build_static,
+                              link=True)
     
-class TestServeStatic(TestCase, BaseFileResolutionTests):
+        
+class TestBuildStaticExcludeNoDefaultIgnore(BuildStaticTestCase):
+    """
+    Test ``--exclude-dirs`` and ``--no-default-ignore`` options for
+    ``build_static`` management command.
+
+
+    """
+    def run_build_static(self):
+        BuildStaticTestCase.run_build_static(self,
+            exclude_dirs=True, use_default_ignore_patterns=False)
+
+    def test_exclude_dirs(self):
+        """
+        With --exclude-dirs, cannot find file in
+        STATICFILES_DIRS.
+
+        """
+        self.assertFileNotFound('test.txt')
+
+    def test_no_common_ignore_patterns(self):
+        """
+        With --no-default-ignore, common ignore patterns (*~, .*, CVS)
+        are not ignored.
+
+        """
+        self.assertFileContains('test/.hidden', 'should be ignored')
+        self.assertFileContains('test/backup~', 'should be ignored')
+        self.assertFileContains('test/CVS', 'should be ignored')
+
+        
+class TestBuildStaticDryRun(BuildStaticTestCase):
+    """
+    Test ``--dry-run`` option for ``build_static`` management command.
+
+    """
+    def run_build_static(self):
+        BuildStaticTestCase.run_build_static(self, dry_run=True)
+
+    def test_no_files_created(self):
+        """
+        With --dry-run, no files created in destination dir.
+
+        """
+        self.assertEquals(os.listdir(self.root), [])
+    
+
+if sys.platform != 'win32':
+    class TestBuildStaticLinks(BuildStaticTestCase, BaseFileResolutionTests):
+        """
+        Test ``--link`` option for ``build_static`` management command.
+        
+        Note that by inheriting ``BaseFileResolutionTests`` we repeat all
+        the standard file resolving tests here, to make sure using
+        ``--link`` does not change the file-selection semantics.
+        
+        """
+        def run_build_static(self):
+            BuildStaticTestCase.run_build_static(self, link=True)
+
+        def test_links_created(self):
+            """
+            With ``--link``, symbolic links are created.
+            
+            """
+            self.failUnless(os.path.islink(os.path.join(self.root, 'test.txt')))
+
+class TestServeStatic(UtilityAssertsTestCase, BaseFileResolutionTests):
     """
     Test static asset serving view.
 
