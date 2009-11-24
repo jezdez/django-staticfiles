@@ -8,7 +8,6 @@ import posixpath
 from django.test import TestCase, Client
 from django.conf import settings as django_settings
 from django.core.management import call_command
-from django.core.management.base import CommandError
 
 from staticfiles import settings
 
