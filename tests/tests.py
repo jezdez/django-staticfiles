@@ -80,8 +80,6 @@ class TestResolveStatic(TestCase, BaseFileResolutionTests):
     """
     Test ``resolve_static`` management command.
 
-    TODO: test without --first
-
     """
     def _get_file(self, filepath):
         _stdout = sys.stdout
@@ -93,6 +91,24 @@ class TestResolveStatic(TestCase, BaseFileResolutionTests):
         finally:
             sys.stdout = _stdout
         return contents
+
+    def test_all_files(self):
+        """
+        Test that resolve_static returns all candidate files if run
+        without --first.
+
+        """
+        _stdout = sys.stdout
+        sys.stdout = StringIO()
+        try:
+            call_command('resolve_static', 'test/file.txt', verbosity='0')
+            sys.stdout.seek(0)
+            lines = [l.strip() for l in sys.stdout.readlines()]
+        finally:
+            sys.stdout = _stdout
+        self.assertEquals(len(lines), 2)
+        self.failUnless(lines[0].endswith('project/static/test/file.txt'))
+        self.failUnless(lines[1].endswith('apps/test/media/test/file.txt'))
 
         
 class TestBuildStatic(TestCase, BaseFileResolutionTests):
