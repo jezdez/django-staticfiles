@@ -30,14 +30,17 @@ class BaseFileResolutionTests:
     """
     Tests shared by all file-resolving features (build_static,
     resolve_static, and static serve view).
+    
+    This relies on the asserts defined in UtilityAssertsTestCase, but
+    is separated because some test cases need those asserts without
+    all these tests.
 
     """
     def assertFileContains(self, filepath, text):
-        self.failUnless(text in self._get_file(filepath),
-                        "'%s' not in '%s'" % (text, filepath))
-
+        raise NotImplementedError
+    
     def assertFileNotFound(self, filepath):
-        self.assertRaises(IOError, self._get_file, filepath)
+        raise NotImplementedError
         
     def test_staticfiles_dirs(self):
         """
@@ -91,6 +94,7 @@ class BaseFileResolutionTests:
         """
         self.assertFileContains('odfile.txt', 'File in otherdir.')
 
+        
 class TestResolveStatic(UtilityAssertsTestCase, BaseFileResolutionTests):
     """
     Test ``resolve_static`` management command.
