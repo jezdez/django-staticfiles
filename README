@@ -99,10 +99,9 @@ To serve static media for both ``MEDIA_URL`` and ``STATIC_URL`` add the
 following snippet to the end of your primary URL configuration::
 
     from django.conf import settings
+    from staticfiles.urls import staticfiles_urlpatterns
     if settings.DEBUG:
-        urlpatterns += patterns('', 
-            (r'', include('staticfiles.urls')),
-        )
+        urlpatterns += staticfiles_urlpatterns()
 
 
 Settings
@@ -195,6 +194,12 @@ The storage to use for copying static files to a single location.
 
 Changelog
 =========
+
+v0.2.1 ():
+----------
+
+* Added staticfiles.urls.staticfiles_urlpatterns to avoid the catch-all
+  URLpattern which can make top-level urls.py slightly more confusing.
 
 v0.2.0 (2009-11-25):
 --------------------

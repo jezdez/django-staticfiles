@@ -266,3 +266,11 @@ class TestServeMedia(TestCase):
         response = client.get(posixpath.join(django_settings.MEDIA_URL,
                                              'media-file.txt'))
         self.assertContains(response, 'Media file.')
+
+
+class TestServeStaticBackwardCompat(TestServeStatic):
+    urls = "tests.urls_backward_compat"
+
+
+class TestServeMediaBackwardCompat(TestServeMedia):
+    urls = "tests.urls_backward_compat"
