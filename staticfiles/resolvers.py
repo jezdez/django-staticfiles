@@ -1,8 +1,9 @@
 import os
 from django.db import models
+from django.core.files.storage import get_storage_class
+
 from staticfiles import utils
 from staticfiles.settings import STORAGE, DIRS
-
 
 def resolve(path, all=False):
     """
@@ -44,7 +45,7 @@ def resolve(path, all=False):
 
     # No match was found yet, look for the file in the static files storage (if
     # local).
-    static_storage = utils.dynamic_import(STORAGE)()
+    static_storage = get_storage_class(STORAGE)()
     try:
         static_storage.path('')
     except NotImplementedError:

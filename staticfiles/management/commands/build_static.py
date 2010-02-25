@@ -3,7 +3,7 @@ import sys
 import shutil
 from optparse import make_option
 
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import FileSystemStorage, get_storage_class
 from django.core.management.base import CommandError
 
 from staticfiles.management.base import OptionalAppCommand
@@ -55,7 +55,7 @@ class Command(OptionalAppCommand):
         options['skipped_files'] = []
         options['copied_files'] = []
         options['symlinked_files'] = []
-        storage = utils.dynamic_import(STORAGE)()
+        storage = get_storage_class(STORAGE)()
         options['destination_storage'] = storage
         try:
             destination_paths = utils.get_files(storage, ignore_patterns)
