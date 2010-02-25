@@ -200,6 +200,16 @@ The storage to use for copying static files to a single location.
 Changelog
 =========
 
+tip
+---
+
+* Minor documentation changes
+
+* Updated testrunner to work with Django 1.1.X and 1.2.X.
+
+* Removed custom code to load storage backend.
+
+
 v0.2.0 (2009-11-25):
 --------------------
 
