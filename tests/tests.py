@@ -9,7 +9,8 @@ from django.test import TestCase, Client
 from django.conf import settings as django_settings
 from django.core.management import call_command
 
-from staticfiles import settings
+from staticfiles import settings, resolvers
+
 
 class UtilityAssertsTestCase(TestCase):
     """
@@ -270,3 +271,22 @@ class TestServeMedia(TestCase):
         response = client.get(posixpath.join(django_settings.MEDIA_URL,
                                              'media-file.txt'))
         self.assertContains(response, 'Media file.')
+
+
+class TestFileSystemResolver(UtilityAssertsTestCase):
+    """
+    Test FileSystemResolver.
+    
+    """
+    def setUp(self):
+        self.resolver = resolvers.FileSystemResolver()
+
+    def test_resolve_first(self):
+        result = self.resolver.resolve("test/file.txt")
+        self.assertEquals(result,
+            os.path.join(django_settings.TEST_ROOT, 'project', 'static', 'test/file.txt'))
+
+    def test_resolve_all(self):
+        result = self.resolver.resolve("test/file.txt", all=True)
+        self.assertEquals(result,
+            [os.path.join(django_settings.TEST_ROOT, 'project', 'static', 'test/file.txt')])

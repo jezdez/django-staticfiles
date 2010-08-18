@@ -26,3 +26,12 @@ APPS = [app for app in settings.INSTALLED_APPS if app not in EXCLUDED_APPS]
 # Destination storage
 STORAGE = getattr(settings, 'STATICFILES_STORAGE',
                   'staticfiles.storage.StaticFileStorage')
+
+
+# List of resolver classes that know how to find static files in
+# various locations.
+RESOLVERS = getattr(settings, 'STATICFILES_RESOLVERS', (
+    'staticfiles.resolvers.FileSystemResolver',
+    'staticfiles.resolvers.AppDirectoriesResolver',
+    'staticfiles.resolvers.LocalStorageResolver',
+))
