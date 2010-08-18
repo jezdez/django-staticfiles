@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name='django-staticfiles',
-    version='0.2.0.post1',
+    version='0.3.0',
     description="A Django app that provides helpers for serving static files.",
     long_description=read('README.rst'),
     author='Jannis Leidel',
