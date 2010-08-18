@@ -199,14 +199,16 @@ The storage to use for copying static files to a single location.
 Changelog
 =========
 
-tip
----
+v0.3.0
+------
 
-* Minor documentation changes
+* Added resolver API which abstract the way staticfiles finds files.
 
 * Added staticfiles.urls.staticfiles_urlpatterns to avoid the catch-all
   URLpattern which can make top-level urls.py slightly more confusing.
   From Brian Rosner.
+
+* Minor documentation changes
 
 * Updated testrunner to work with Django 1.1.X and 1.2.X.
 
