@@ -7,6 +7,7 @@ import posixpath
 
 from django.test import TestCase, Client
 from django.conf import settings as django_settings
+from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 
 from staticfiles import settings, resolvers
@@ -273,23 +274,60 @@ class TestServeMedia(TestCase):
         self.assertContains(response, 'Media file.')
 
 
-class TestFileSystemResolver(UtilityAssertsTestCase):
+class ResolverTestCase:
+    def test_resolve_first(self):
+        src, dst = self.resolve_first
+        self.assertEquals(self.resolver.resolve(src), dst)
+
+    def test_resolve_all(self):
+        src, dst = self.resolve_all
+        self.assertEquals(self.resolver.resolve(src, all=True), dst)
+
+
+class TestFileSystemResolver(UtilityAssertsTestCase, ResolverTestCase):
     """
     Test FileSystemResolver.
-    
     """
     def setUp(self):
         self.resolver = resolvers.FileSystemResolver()
+        test_file_path = os.path.join(django_settings.TEST_ROOT, 'project/static/test/file.txt')
+        self.resolve_first = ("test/file.txt", test_file_path)
+        self.resolve_all = ("test/file.txt", [test_file_path])
 
-    def test_resolve_first(self):
-        result = self.resolver.resolve("test/file.txt")
-        self.assertEquals(result,
-            os.path.join(django_settings.TEST_ROOT, 'project', 'static', 'test/file.txt'))
 
-    def test_resolve_all(self):
-        result = self.resolver.resolve("test/file.txt", all=True)
-        self.assertEquals(result,
-            [os.path.join(django_settings.TEST_ROOT, 'project', 'static', 'test/file.txt')])
+class TestAppDirectoriesResolver(UtilityAssertsTestCase, ResolverTestCase):
+    """
+    Test AppDirectoriesResolver.
+    """
+    def setUp(self):
+        self.resolver = resolvers.AppDirectoriesResolver()
+        test_file_path = os.path.join(django_settings.TEST_ROOT, 'apps/test/media/test/file1.txt')
+        self.resolve_first = ("test/file1.txt", test_file_path)
+        self.resolve_all = ("test/file1.txt", [test_file_path])
+
+
+class TestLocalStorageResolver(UtilityAssertsTestCase, ResolverTestCase):
+    """
+    Test LocalStorageResolver.
+    """
+    def setUp(self):
+        self.resolver = resolvers.LocalStorageResolver()
+        test_file_path = os.path.join(django_settings.TEST_ROOT, 'project/site_media/static/test/storage.txt')
+        self.resolve_first = ("test/storage.txt", test_file_path)
+        self.resolve_all = ("test/storage.txt", [test_file_path])
+
+
+class TestMiscResolver(TestCase):
+    """
+    A few misc resolver tests.
+    """
+    def test_get_resolver(self):
+        self.assertEquals(resolvers.FileSystemResolver,
+            resolvers.get_resolver("staticfiles.resolvers.FileSystemResolver"))
+        self.assertRaises(ImproperlyConfigured,
+            resolvers.get_resolver, "staticfiles.resolvers.FooBarResolver")
+        self.assertRaises(ImproperlyConfigured,
+            resolvers.get_resolver, "foo.bar.FooBarResolver")
 
 
 class TestServeStaticBackwardCompat(TestServeStatic):
