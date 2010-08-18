@@ -290,3 +290,12 @@ class TestFileSystemResolver(UtilityAssertsTestCase):
         result = self.resolver.resolve("test/file.txt", all=True)
         self.assertEquals(result,
             [os.path.join(django_settings.TEST_ROOT, 'project', 'static', 'test/file.txt')])
+
+
+class TestServeStaticBackwardCompat(TestServeStatic):
+    urls = "tests.urls_backward_compat"
+
+
+class TestServeMediaBackwardCompat(TestServeMedia):
+    urls = "tests.urls_backward_compat"
+
