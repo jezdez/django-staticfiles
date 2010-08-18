@@ -196,6 +196,20 @@ STATICFILES_STORAGE
 The storage to use for copying static files to a single location. 
 
 
+STATICFILES_RESOLVERS
+---------------------
+
+:Default: ``('staticfiles.resolvers.FileSystemResolver',
+             'staticfiles.resolvers.AppDirectoriesResolver',
+             'staticfiles.resolvers.LocalStorageResolver')``
+
+The list of resolver classes that know how to find static files in
+various locations.
+
+If you know you only keep your files in one of those
+locations, just omit the unnecessary resolvers.
+
+
 Changelog
 =========
 
