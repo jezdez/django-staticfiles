@@ -199,8 +199,8 @@ The storage to use for copying static files to a single location.
 Changelog
 =========
 
-v0.3.0
-------
+v0.3.0 (2010-08-18):
+--------------------
 
 * Added resolver API which abstract the way staticfiles finds files.
 
