@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v0.3.1 (2010-08-21)
+-------------------
+
+* Added Sphinx config files and split up README.
+  
+  Documetation now available under
+  `django-staticfiles.readthedocs.org <http://django-staticfiles.readthedocs.org/>`_
+
 v0.3.0 (2010-08-18)
 -------------------
 
