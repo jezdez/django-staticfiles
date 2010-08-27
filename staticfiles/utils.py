@@ -66,7 +66,6 @@ def get_files(storage, ignore_patterns=[], location=''):
     that should be copied, returning this list.
     
     """
-
     def is_ignored(path):
         """
         Return True or False depending on whether the ``path`` should be
