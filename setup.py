@@ -13,7 +13,6 @@ setup(
     author_email='jannis@leidel.info',
     license='BSD',
     url='http://django-staticfiles.readthedocs.org/',
-    download_url='http://bitbucket.org/jezdez/django-staticfiles/downloads/',
     packages=[
         'staticfiles',
         'staticfiles.management',
