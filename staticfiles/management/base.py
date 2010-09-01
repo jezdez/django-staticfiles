@@ -1,4 +1,5 @@
 import logging
+import sys
 from optparse import make_option
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand, CommandError
@@ -46,11 +47,18 @@ class BaseOptionalAppCommand(BaseCommand):
     def handle(self, *app_labels, **options):
         from django.db import models
         # Get all the apps, checking for common errors.
-        try:
-            all_apps = models.get_apps()
-        except (ImproperlyConfigured, ImportError), e:
-            raise CommandError("%s. Are you sure your INSTALLED_APPS setting "
-                               "is correct?" % e)
+        if options.get('use_virtualenv'):
+            all_apps = []
+            for k,v in sys.modules.iteritems():
+                if k.split(".")[-1] == "models":
+                    all_apps.append(v)
+        else:
+            try:
+                all_apps = models.get_apps()
+            except (ImproperlyConfigured, ImportError), e:
+                raise CommandError("%s. Are you sure your INSTALLED_APPS setting "
+                                   "is correct?" % e)
+
         # Build the app_list.
         app_list = []
         used = 0

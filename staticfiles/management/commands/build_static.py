@@ -43,6 +43,9 @@ class Command(OptionalAppCommand):
             dest='use_default_ignore_patterns', default=True,
             help="Don't ignore the common private glob-style patterns 'CVS', "
                 "'.*' and '*~'."),
+        make_option('--use-virtualenv', action='store_true',
+            dest='use_virtualenv', default=False,
+            help="Use all Django apps currently available on PYTHONPATH (from virtualenv) and ignore DJANGO_SETTINGS_MODULE"),
     )
     help = ("Copy static media files from apps and other locations in a "
             "single location.")
