@@ -46,11 +46,18 @@ class Command(OptionalAppCommand):
         make_option('--use-virtualenv', action='store_true',
             dest='use_virtualenv', default=False,
             help="Use all Django apps currently available on PYTHONPATH (from virtualenv) and ignore DJANGO_SETTINGS_MODULE"),
+        make_option('--static-root-target', action='store', type='string',
+            dest='static_root_target', default=False,
+            help="Override STATIC_ROOT and target a different folder"),
     )
     help = ("Copy static media files from apps and other locations in a "
             "single location.")
 
     def handle(self, *app_labels, **options):
+        if options.has_key('static_root_target'):
+            import staticfiles.settings
+            staticfiles.settings.ROOT = os.path.abspath(options.get('static_root_target'))
+
         ignore_patterns = options['ignore_patterns']
         if options['use_default_ignore_patterns']:
             ignore_patterns += ['CVS', '.*', '*~']
