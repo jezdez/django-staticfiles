@@ -197,6 +197,6 @@ Type 'yes' to continue, or 'no' to cancel: """)
                     shutil.copy2(source_path, destination_path)
                 else:
                     source_file = source_storage.open(source)
-                    destination_storage.write(destination, source_file)
+                    destination_storage.save(destination, source_file)
             options['copied_files'].append(destination)
         return True
