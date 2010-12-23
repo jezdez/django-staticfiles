@@ -1,5 +1,7 @@
 import os
 import fnmatch
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 from django.core.files.storage import FileSystemStorage
 from django.utils.importlib import import_module
@@ -59,6 +61,7 @@ def get_app_prefix(app):
     if app_module in PREPEND_LABEL_APPS:
         return app_name
 
+from staticfiles.settings import URL as STATIC_URL, ROOT as STATIC_ROOT
 
 def get_files(storage, ignore_patterns=[], location=''):
     """
@@ -88,3 +91,16 @@ def get_files(storage, ignore_patterns=[], location=''):
             dir = '/'.join([location, dir])
         static_files.extend(get_files(storage, ignore_patterns, dir))
     return static_files
+
+def check_settings():
+    """
+    Checks if the MEDIA_(ROOT|URL) and STATIC_(ROOT|URL)
+    settings have the same value.
+    """
+    if settings.MEDIA_URL == STATIC_URL:
+        raise ImproperlyConfigured("The MEDIA_URL and STATIC_URL "
+                                   "settings must have different values")
+    if ((settings.MEDIA_ROOT and STATIC_ROOT) and
+            (settings.MEDIA_ROOT == STATIC_ROOT)):
+        raise ImproperlyConfigured("The MEDIA_ROOT and STATIC_ROOT "
+                                   "settings must have different values")
