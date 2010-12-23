@@ -59,7 +59,7 @@ class Command(OptionalAppCommand):
         options['destination_storage'] = storage
         try:
             destination_paths = utils.get_files(storage, ignore_patterns)
-        except OSError:
+        except (OSError, NotImplementedError):
             # The destination storage location may not exist yet. It'll get
             # created when the first file is copied.
             destination_paths = []
