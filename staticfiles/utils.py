@@ -1,13 +1,15 @@
 import os
 import fnmatch
+import warnings
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from django.core.files.storage import FileSystemStorage
 from django.utils.importlib import import_module
 
-from staticfiles.settings import MEDIA_DIRNAMES, PREPEND_LABEL_APPS, \
-    EXCLUDED_APPS
+from staticfiles.settings import (URL as STATIC_URL, ROOT as STATIC_ROOT,
+    MEDIA_DIRNAMES, PREPEND_LABEL_APPS, EXCLUDED_APPS)
 
 def get_files_for_app(app, ignore_patterns=[]):
     """
@@ -15,15 +17,6 @@ def get_files_for_app(app, ignore_patterns=[]):
     should be copied for an app.
     
     """
-    prefix = get_app_prefix(app)
-    files = []
-    for storage in app_static_storages(app):
-        for path in get_files(storage, ignore_patterns):
-            if prefix:
-                path = '/'.join([prefix, path])
-            files.append(path)
-    return files
-
 
 def app_static_storages(app):
     """
@@ -48,20 +41,23 @@ def app_static_storages(app):
             continue
         yield FileSystemStorage(location=location)
 
+    from staticfiles.storage import AppStaticStorage
+    warnings.warn(
+        "The staticfiles.utils.get_files_for_app utility function is "
+        "deprecated. Use staticfiles.storage.AppStaticStorage.get_files "
+        "instead.")
+    return AppStaticStorage(app).get_files(ignore_patterns)
 
 def get_app_prefix(app):
     """
     Return the path name that should be prepended to files for this app.
-    
     """
-    # "app" is actually the models module of the app. Remove the '.models'. 
-    bits = app.__name__.split('.')[:-1]
-    app_name = bits[-1]
-    app_module = '.'.join(bits)
-    if app_module in PREPEND_LABEL_APPS:
-        return app_name
-
-from staticfiles.settings import URL as STATIC_URL, ROOT as STATIC_ROOT
+    from staticfiles.storage import AppStaticStorage
+    warnings.warn(
+        "The staticfiles.utils.get_app_prefix utility function is "
+        "deprecated. Use staticfiles.storage.AppStaticStorage.get_prefix "
+        "instead.")
+    return AppStaticStorage(app).get_prefix()
 
 def get_files(storage, ignore_patterns=[], location=''):
     """
