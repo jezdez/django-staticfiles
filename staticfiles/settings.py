@@ -1,3 +1,4 @@
+from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 
 # The directory in which the static files are collected in
@@ -29,7 +30,8 @@ STORAGE = getattr(settings, 'STATICFILES_STORAGE',
 
 # List of resolver classes that know how to find static files in
 # various locations.
-RESOLVERS = getattr(settings, 'STATICFILES_RESOLVERS',
-                    ('staticfiles.resolvers.FileSystemResolver',
-                     'staticfiles.resolvers.AppDirectoriesResolver',
-                     'staticfiles.resolvers.LocalStorageResolver'))
+if getattr(settings, 'STATICFILES_RESOLVERS', None):
+    raise ImproperlyConfigured(
+        "The resolver API has been replaced by the finders API and "
+        "its STATICFILES_FINDERS setting. Please update your settings.")
+
