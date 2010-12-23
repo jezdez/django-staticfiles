@@ -1,6 +1,28 @@
 Changelog
 =========
 
+v0.3.3 (2010-12-23)
+-------------------
+
+.. note:: With the adoption of django-staticfiles in Django >=1.3.X as a
+   contrib app, the django-staticfiles 0.3.X series will be the last series
+   to support Django 1.2.X and lower. Any new features will occur in
+   later releases and target Django >=1.3.X though.
+
+* Fixed an issue that could prevent the ``build_static`` management command
+  to fail if the destination storage doesn't implement the ``listdir``
+  method.
+
+* Fixed an issue that caused non-local storage backends to fail saving
+  the files when running ``build_static``.
+
+v0.3.2 (2010-08-27)
+-------------------
+
+* Minor cosmetic changes
+
+* Moved repository back to Github: http://github.com/jezdez/django-staticfiles
+
 v0.3.1 (2010-08-21)
 -------------------
 
