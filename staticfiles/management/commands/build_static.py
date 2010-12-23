@@ -59,7 +59,7 @@ class Command(OptionalAppCommand):
         options['destination_storage'] = storage
         try:
             destination_paths = utils.get_files(storage, ignore_patterns)
-        except OSError:
+        except (OSError, NotImplementedError):
             # The destination storage location may not exist yet. It'll get
             # created when the first file is copied.
             destination_paths = []
@@ -197,6 +197,6 @@ Type 'yes' to continue, or 'no' to cancel: """)
                     shutil.copy2(source_path, destination_path)
                 else:
                     source_file = source_storage.open(source)
-                    destination_storage.write(destination, source_file)
+                    destination_storage.save(destination, source_file)
             options['copied_files'].append(destination)
         return True

@@ -9,7 +9,7 @@ print "yeah"
 
 setup(
     name='django-staticfiles',
-    version='0.3.2',
+    version='0.3.3',
     description="A Django app that provides helpers for serving static files.",
     long_description=read('README.rst'),
     author='Jannis Leidel',
