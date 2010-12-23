@@ -17,30 +17,6 @@ def get_files_for_app(app, ignore_patterns=[]):
     should be copied for an app.
     
     """
-
-def app_static_storages(app):
-    """
-    A generator which yields the potential static file storages for an app.
-    
-    Excluded apps do not yield any storages
-    
-    Only storages for valid locations are yielded.
-    
-    """
-    # "app" is actually the models module of the app. Remove the '.models'. 
-    app_module = '.'.join(app.__name__.split('.')[:-1])
-    if app_module in EXCLUDED_APPS:
-        return
-    # The models module may be a package in which case dirname(app.__file__)
-    # would be wrong. Import the actual app as opposed to the models module.
-    app = import_module(app_module)
-    app_root = os.path.dirname(app.__file__)
-    for media_dirname in MEDIA_DIRNAMES:
-        location = os.path.join(app_root, media_dirname)
-        if not os.path.isdir(location):
-            continue
-        yield FileSystemStorage(location=location)
-
     from staticfiles.storage import AppStaticStorage
     warnings.warn(
         "The staticfiles.utils.get_files_for_app utility function is "
