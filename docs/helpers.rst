@@ -1,25 +1,6 @@
 Helpers
 =======
 
-``static_url`` context processor
---------------------------------
-
-To refer to static file assets from a template, ensure you have set the
-:ref:`static-url` setting to the URL path where the static files are served.
-
-Next, add the ``static_url`` context processor to your
-``TEMPLATE_CONTEXT_PROCESSORS`` setting::
-
-   TEMPLATE_CONTEXT_PROCESSORS = (
-       'staticfiles.context_processors.static_url',
-   )
-
-Templates rendered with ``RequestContext`` will now have access to a
-:ref:`static-url` context variable::
-
-   <link href="{{ STATIC_URL }}css/polls.css" rel="stylesheet" type="text/css" />
-
-
 Serving static files during development
 ---------------------------------------
 
