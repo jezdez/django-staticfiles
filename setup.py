@@ -4,12 +4,9 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-
-print "yeah"
-
 setup(
     name='django-staticfiles',
-    version='0.3.3',
+    version='0.3.4',
     description="A Django app that provides helpers for serving static files.",
     long_description=read('README.rst'),
     author='Jannis Leidel',
