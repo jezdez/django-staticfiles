@@ -38,7 +38,8 @@ class StaticFileStorage(StaticFilesStorage):
     def __init__(self, *args, **kwargs):
         warning.warn(
             "The storage backend 'staticfiles.storage.StaticFileStorage' "
-            "was renamed to 'staticfiles.storage.StaticFilesStorage'.")
+            "was renamed to 'staticfiles.storage.StaticFilesStorage'.",
+            PendingDeprecationWarning)
         super(StaticFileStorage, self).__init__(*args, **kwargs)
 
 

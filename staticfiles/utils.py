@@ -21,7 +21,7 @@ def get_files_for_app(app, ignore_patterns=[]):
     warnings.warn(
         "The staticfiles.utils.get_files_for_app utility function is "
         "deprecated. Use staticfiles.storage.AppStaticStorage.get_files "
-        "instead.")
+        "instead.", PendingDeprecationWarning)
     return AppStaticStorage(app).get_files(ignore_patterns)
 
 def get_app_prefix(app):
@@ -32,7 +32,7 @@ def get_app_prefix(app):
     warnings.warn(
         "The staticfiles.utils.get_app_prefix utility function is "
         "deprecated. Use staticfiles.storage.AppStaticStorage.get_prefix "
-        "instead.")
+        "instead.", PendingDeprecationWarning)
     return AppStaticStorage(app).get_prefix()
 
 def get_files(storage, ignore_patterns=[], location=''):
