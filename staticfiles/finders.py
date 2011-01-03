@@ -211,16 +211,10 @@ class DefaultStorageFinder(BaseStorageFinder):
 
 def find(path, all=False):
     """
-    Find a requested static file, first looking in any defined extra media
-    locations and next in any (non-excluded) installed apps.
-    
-    If no matches are found and the static location is local, look for a match
-    there too.
-    
+    Find a static file with the given path using all enabled finders.
+
     If ``all`` is ``False`` (default), return the first matching
-    absolute path (or ``None`` if no match). Otherwise return a list of
-    found absolute paths.
-    
+    absolute path (or ``None`` if no match). Otherwise return a list.
     """
     matches = []
     for finder in get_finders():
