@@ -82,7 +82,7 @@ class AppStaticStorage(FileSystemStorage):
         Return the path name that should be prepended to files for this app.
         """
         if self.app_module in PREPEND_LABEL_APPS:
-            return app_name
+            return self.app_name
         return None
 
     def get_files(self, ignore_patterns=[]):
