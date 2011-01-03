@@ -252,7 +252,7 @@ def get_finders():
         storage_class = type('%sAppStaticStorage' % capitalized_dirname,
                              (AppStaticStorage,), {'source_dir': dirname})
         yield type('%sFinder' % capitalized_dirname,
-                   (AppDirectoriesFinder,), {'storage_class': storage_class})
+                   (AppDirectoriesFinder,), {'storage_class': storage_class})()
     for finder_path in FINDERS:
         yield get_finder(finder_path)
 
