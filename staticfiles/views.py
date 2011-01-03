@@ -17,18 +17,24 @@ from staticfiles import finders
 
 def serve(request, path, show_indexes=False, insecure=False):
     """
-    Serve static files from locations inferred from INSTALLED_APPS and
-    STATICFILES_DIRS.
+    Serve static files below a given point in the directory structure or
+    from locations inferred from the static files finders.
 
     To use, put a URL pattern such as::
 
         (r'^(?P<path>.*)$', 'staticfiles.views.serve')
 
-    in your URLconf. You may also set ``show_indexes`` to ``True`` if you'd
-    like to serve a basic index of the directory.  This index view will use the
+    in your URLconf.
+
+    If you provide the ``document_root`` parameter, the file won't be looked
+    up with the staticfiles finders, but in the given filesystem path, e.g.::
+
+    (r'^(?P<path>.*)$', 'staticfiles.views.serve', {'document_root' : '/path/to/my/files/'})
+
+    You may also set ``show_indexes`` to ``True`` if you'd like to serve a
+    basic index of the directory.  This index view will use the
     template hardcoded below, but if you'd like to override it, you can create
-    a template called ``static/directory_index``.
-    
+    a template called ``static/directory_index.html``.
     """
     if not settings.DEBUG and not insecure:
         raise ImproperlyConfigured("The view to serve static files can only "
