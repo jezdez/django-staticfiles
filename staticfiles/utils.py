@@ -53,14 +53,14 @@ def get_files(storage, ignore_patterns=[], location=''):
         return False
 
     directories, files = storage.listdir(location)
-    static_files = [location and '/'.join([location, fn]) or fn
+    static_files = [location and os.path.join(location, fn) or fn
                     for fn in files
                     if not is_ignored(fn)]
     for dir in directories:
         if is_ignored(dir):
             continue
         if location:
-            dir = '/'.join([location, dir])
+            dir = os.path.join(location, dir)
         static_files.extend(get_files(storage, ignore_patterns, dir))
     return static_files
 

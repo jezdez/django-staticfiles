@@ -5,6 +5,7 @@ from django.core.files.storage import default_storage, Storage, FileSystemStorag
 from django.utils.datastructures import SortedDict
 from django.utils.functional import memoize, LazyObject
 from django.utils.importlib import import_module
+from django.utils._os import safe_join
 
 from staticfiles import utils
 from staticfiles.settings import DIRS, FINDERS, APPS, MEDIA_DIRNAMES
@@ -80,11 +81,11 @@ class FileSystemFinder(BaseFinder):
         absolute path (or ``None`` if no match).
         """
         if prefix:
-            prefix = '%s/' % prefix
+            prefix = '%s%s' % (prefix, os.sep)
             if not path.startswith(prefix):
                 return None
             path = path[len(prefix):]
-        path = os.path.join(root, path)
+        path = safe_join(root, path)
         if os.path.exists(path):
             return path
 
@@ -100,7 +101,8 @@ class FileSystemFinder(BaseFinder):
 
 class AppDirectoriesFinder(BaseFinder):
     """
-    A static files finder that looks in the ``static`` directory of each app.
+    A static files finder that looks in the directory of each app
+    specified in the source_dir attribute of the given storage class.
     """
     storage_class = AppStaticStorage
 
@@ -147,7 +149,7 @@ class AppDirectoriesFinder(BaseFinder):
         storage = self.storages[app]
         prefix = storage.get_prefix()
         if prefix:
-            prefix = '%s/' % prefix
+            prefix = '%s%s' % (prefix, os.sep)
             if not path.startswith(prefix):
                 return None
             path = path[len(prefix):]
