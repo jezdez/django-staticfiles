@@ -1,7 +1,7 @@
 import os
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.storage import default_storage, Storage, FileSystemStorage
+from django.core.files.storage import default_storage, Storage
 from django.utils.datastructures import SortedDict
 from django.utils.functional import memoize, LazyObject
 from django.utils.importlib import import_module
@@ -10,7 +10,7 @@ from django.utils._os import safe_join
 from staticfiles import utils
 from staticfiles.settings import DIRS, FINDERS, APPS, MEDIA_DIRNAMES
 
-from staticfiles.storage import AppStaticStorage
+from staticfiles.storage import AppStaticStorage, TimeAwareFileSystemStorage
 
 _finders = {}
 
@@ -57,7 +57,7 @@ class FileSystemFinder(BaseFinder):
             self.locations.add((prefix, root))
         # Don't initialize multiple storages for the same location
         for prefix, root in self.locations:
-            self.storages[root] = FileSystemStorage(location=root)
+            self.storages[root] = TimeAwareFileSystemStorage(location=root)
 
         super(FileSystemFinder, self).__init__(*args, **kwargs)
 

@@ -1,5 +1,6 @@
 import os
 import warnings
+from datetime import datetime
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -9,7 +10,19 @@ from django.utils.importlib import import_module
 from staticfiles import utils
 from staticfiles.settings import URL as STATIC_URL, ROOT as STATIC_ROOT, PREPEND_LABEL_APPS
 
-class StaticFilesStorage(FileSystemStorage):
+
+class TimeAwareFileSystemStorage(FileSystemStorage):
+    def accessed_time(self, name):
+        return datetime.fromtimestamp(os.path.getatime(self.path(name)))
+
+    def created_time(self, name):
+        return datetime.fromtimestamp(os.path.getctime(self.path(name)))
+
+    def modified_time(self, name):
+        return datetime.fromtimestamp(os.path.getmtime(self.path(name)))
+
+
+class StaticFilesStorage(TimeAwareFileSystemStorage):
     """
     Standard file system storage for site media files.
     
@@ -35,6 +48,7 @@ class StaticFilesStorage(FileSystemStorage):
         super(StaticFilesStorage, self).__init__(location, base_url,
                                                  *args, **kwargs)
 
+
 class StaticFileStorage(StaticFilesStorage):
 
     def __init__(self, *args, **kwargs):
@@ -45,7 +59,7 @@ class StaticFileStorage(StaticFilesStorage):
         super(StaticFileStorage, self).__init__(*args, **kwargs)
 
 
-class AppStaticStorage(FileSystemStorage):
+class AppStaticStorage(TimeAwareFileSystemStorage):
     """
     A file system storage backend that takes an app module and works
     for the ``static`` directory of it.
