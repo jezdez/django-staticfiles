@@ -1,4 +1,4 @@
-import warning
+import warnings
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -36,7 +36,7 @@ class StaticFilesStorage(FileSystemStorage):
 class StaticFileStorage(StaticFilesStorage):
 
     def __init__(self, *args, **kwargs):
-        warning.warn(
+        warnings.warn(
             "The storage backend 'staticfiles.storage.StaticFileStorage' "
             "was renamed to 'staticfiles.storage.StaticFilesStorage'.",
             PendingDeprecationWarning)
