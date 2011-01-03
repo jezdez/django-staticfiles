@@ -1,8 +1,10 @@
+import os
 import warnings
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.importlib import import_module
 
 from staticfiles import utils
 from staticfiles.settings import URL as STATIC_URL, ROOT as STATIC_ROOT, PREPEND_LABEL_APPS
