@@ -10,7 +10,6 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
 from django.core.management import call_command
-from django.db.models.loading import load_app
 from django.template import Template, Context
 from django.test import TestCase
 

@@ -9,8 +9,8 @@ urlpatterns = []
 
 # only serve non-fqdn URLs
 if settings.DEBUG:
-    urlpatterns += patterns('staticfiles.views',
-        url(r'^(?P<path>.*)$', 'serve'),
+    urlpatterns += patterns('',
+        url(r'^(?P<path>.*)$', 'staticfiles.views.serve'),
     )
 
 def staticfiles_urlpatterns(prefix=None):
