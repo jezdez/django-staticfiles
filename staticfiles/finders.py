@@ -240,7 +240,7 @@ def get_finders():
     looking at the MEDIA_DIRNAMES setting.
     """
     static_covered = (
-        'django.contrib.staticfiles.finders.AppDirectoriesFinder' in FINDERS)
+        'staticfiles.finders.AppDirectoriesFinder' in FINDERS)
     for dirname in MEDIA_DIRNAMES:
         if dirname == 'static' and static_covered:
             # don't generate a dynamic AppDirectoriesFinder for a dirname of 'static'
