@@ -16,10 +16,16 @@ MEDIA_ROOT = join(TEST_ROOT, 'project', 'site_media', 'media')
 STATIC_URL = '/site_media/static/'
 STATIC_ROOT = join(TEST_ROOT, 'project', 'site_media', 'static')
 
+STATICFILES_STORAGE = 'staticfiles.storage.StaticFilesStorage'
 STATICFILES_DIRS = (('', join(TEST_ROOT, 'project', 'static')),)
 STATICFILES_PREPEND_LABEL_APPS = ('tests.apps.no_label',)
 STATICFILES_EXCLUDED_APPS = ('tests.apps.skip',)
 STATICFILES_MEDIA_DIRNAMES = ('media', 'otherdir')
+STATICFILES_FINDERS = (
+    'staticfiles.finders.FileSystemFinder',
+    'staticfiles.finders.AppDirectoriesFinder',
+#   'staticfiles.finders.DefaultStorageFinder'
+)
 
 ROOT_URLCONF = 'tests.urls'
 

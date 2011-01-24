@@ -1,4 +1,5 @@
 import os
+import sys
 from optparse import make_option
 from django.core.management.base import LabelCommand
 
@@ -20,7 +21,7 @@ class Command(LabelCommand):
             if not isinstance(result, (list, tuple)):
                 result = [result]
             output = '\n  '.join((os.path.realpath(path) for path in result))
-            self.stdout.write("Found %r here:\n  %s\n" % (path, output))
+            sys.stdout.write("Found %r here:\n  %s\n" % (path, output))
         else:
             if verbosity >= 1:
-                self.stdout.write("No matching file found for %r.\n" % path)
+                sys.stdout.write("No matching file found for %r.\n" % path)
