@@ -2,14 +2,13 @@ import os
 import fnmatch
 import warnings
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.core.exceptions import ImproperlyConfigured
 
 from django.core.files.storage import FileSystemStorage
 from django.utils.importlib import import_module
 
-from staticfiles.settings import (URL as STATIC_URL, ROOT as STATIC_ROOT,
-    MEDIA_DIRNAMES, PREPEND_LABEL_APPS, EXCLUDED_APPS)
+from staticfiles import settings
 
 def get_files_for_app(app, ignore_patterns=[]):
     """
@@ -70,10 +69,10 @@ def check_settings():
     Checks if the MEDIA_(ROOT|URL) and STATIC_(ROOT|URL)
     settings have the same value.
     """
-    if settings.MEDIA_URL == STATIC_URL:
+    if django_settings.MEDIA_URL == settings.URL:
         raise ImproperlyConfigured("The MEDIA_URL and STATIC_URL "
                                    "settings must have different values")
-    if ((settings.MEDIA_ROOT and STATIC_ROOT) and
-            (settings.MEDIA_ROOT == STATIC_ROOT)):
+    if ((django_settings.MEDIA_ROOT and settings.ROOT) and
+            (django_settings.MEDIA_ROOT == settings.ROOT)):
         raise ImproperlyConfigured("The MEDIA_ROOT and STATIC_ROOT "
                                    "settings must have different values")

@@ -46,7 +46,6 @@ class Command(NoArgsCommand):
         # Use ints for file times (ticket #14665)
         os.stat_float_times(False)
 
-
     def handle_noargs(self, **options):
         symlink = options['link']
         ignore_patterns = options['ignore_patterns']

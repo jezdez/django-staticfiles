@@ -2,13 +2,13 @@ import os
 import warnings
 from datetime import datetime
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.importlib import import_module
+from django.utils.functional import LazyObject
 
-from staticfiles import utils
-from staticfiles.settings import URL as STATIC_URL, ROOT as STATIC_ROOT, PREPEND_LABEL_APPS
+from staticfiles import utils, settings
 
 
 class TimeAwareFileSystemStorage(FileSystemStorage):
@@ -21,6 +21,12 @@ class TimeAwareFileSystemStorage(FileSystemStorage):
     def modified_time(self, name):
         return datetime.fromtimestamp(os.path.getmtime(self.path(name)))
 
+class DefaultStorage(LazyObject):
+    def _setup(self):
+        self._wrapped = TimeAwareFileSystemStorage()
+
+default_storage = DefaultStorage()
+
 
 class StaticFilesStorage(TimeAwareFileSystemStorage):
     """
@@ -31,9 +37,9 @@ class StaticFilesStorage(TimeAwareFileSystemStorage):
     """
     def __init__(self, location=None, base_url=None, *args, **kwargs):
         if location is None:
-            location = STATIC_ROOT
+            location = settings.ROOT
         if base_url is None:
-            base_url = STATIC_URL
+            base_url = settings.URL
         if not location:
             raise ImproperlyConfigured("You're using the staticfiles app "
                 "without having set the STATIC_ROOT setting. Set it to "
@@ -43,7 +49,7 @@ class StaticFilesStorage(TimeAwareFileSystemStorage):
             raise ImproperlyConfigured("You're using the staticfiles app "
                 "without having set the STATIC_URL setting. Set it to "
                 "URL that handles the files served from STATIC_ROOT.")
-        if settings.DEBUG:
+        if django_settings.DEBUG:
             utils.check_settings()
         super(StaticFilesStorage, self).__init__(location, base_url, *args, **kwargs)
 

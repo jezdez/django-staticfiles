@@ -1,17 +1,14 @@
 import os
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.storage import default_storage, Storage
+from django.core.files.storage import Storage
 from django.utils.datastructures import SortedDict
 from django.utils.functional import memoize, LazyObject
 from django.utils.importlib import import_module
 from django.utils._os import safe_join
 
-from staticfiles import utils
-from staticfiles.settings import DIRS, FINDERS, APPS, MEDIA_DIRNAMES
-
-from staticfiles.storage import AppStaticStorage, TimeAwareFileSystemStorage
+from staticfiles import utils, settings, storage
 
 _finders = {}
 
@@ -49,7 +46,7 @@ class FileSystemFinder(BaseFinder):
         self.storages = SortedDict()
         # Set of locations with static files
         self.locations = set()
-        for root in DIRS:
+        for root in settings.DIRS:
             if isinstance(root, (list, tuple)):
                 prefix, root = root
             else:
@@ -57,7 +54,7 @@ class FileSystemFinder(BaseFinder):
             self.locations.add((prefix, root))
         # Don't initialize multiple storages for the same location
         for prefix, root in self.locations:
-            filesystem_storage = TimeAwareFileSystemStorage(location=root)
+            filesystem_storage = storage.TimeAwareFileSystemStorage(location=root)
             filesystem_storage.prefix = prefix
             self.storages[root] = filesystem_storage
 
@@ -106,7 +103,7 @@ class AppDirectoriesFinder(BaseFinder):
     A static files finder that looks in the directory of each app as
     specified in the source_dir attribute of the given storage class.
     """
-    storage_class = AppStaticStorage
+    storage_class = storage.AppStaticStorage
 
     def __init__(self, apps=None, *args, **kwargs):
         # The list of apps that are handled
@@ -114,8 +111,10 @@ class AppDirectoriesFinder(BaseFinder):
         # Mapping of app module paths to storage instances
         self.storages = SortedDict()
         if apps is None:
-            apps = settings.INSTALLED_APPS
+            apps = django_settings.INSTALLED_APPS
         for app in apps:
+            if app in settings.EXCLUDED_APPS:
+                continue
             app_storage = self.storage_class(app)
             if os.path.isdir(app_storage.location):
                 self.storages[app] = app_storage
@@ -127,7 +126,7 @@ class AppDirectoriesFinder(BaseFinder):
         """
         List all files in all app storages.
         """
-        for storage in self.storages.itervalues():
+        for storage in self.storages.values():
             if storage.exists(''): # check if storage location exists
                 for path in utils.get_files(storage, ignore_patterns):
                     yield path, storage
@@ -209,7 +208,7 @@ class DefaultStorageFinder(BaseStorageFinder):
     """
     A static files finder that uses the default storage backend.
     """
-    storage = default_storage
+    storage = storage.default_storage
 
 
 def find(path, all=False):
@@ -250,7 +249,7 @@ def get_finders():
                              (AppStaticStorage,), {'source_dir': dirname})
         yield type('%sFinder' % capitalized_dirname,
                    (AppDirectoriesFinder,), {'storage_class': storage_class})()
-    for finder_path in FINDERS:
+    for finder_path in settings.FINDERS:
         yield get_finder(finder_path)
 
 def _get_finder(import_path):
