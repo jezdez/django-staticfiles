@@ -87,3 +87,12 @@ class AppStaticStorage(TimeAwareFileSystemStorage):
         mod_path = os.path.dirname(mod.__file__)
         location = os.path.join(mod_path, self.source_dir)
         super(AppStaticStorage, self).__init__(location, *args, **kwargs)
+
+
+class LegacyAppMediaStorage(AppStaticStorage):
+    """
+    A legacy file finder that provides a migration path for the
+    default directory name in previous versions of staticfiles, "media".
+    """
+    source_dir = 'media'
+

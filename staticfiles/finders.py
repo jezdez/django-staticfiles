@@ -162,6 +162,14 @@ class AppDirectoriesFinder(BaseFinder):
                     return matched_path
 
 
+class LegacyAppDirectoriesFinder(AppDirectoriesFinder):
+    """
+    A legacy file finder that provides a migration path for the
+    default directory name in previous versions of staticfiles, "media".
+    """
+    storage_class = storage.LegacyAppMediaStorage
+
+
 class BaseStorageFinder(BaseFinder):
     """
     A base static files finder to be used to extended
@@ -234,21 +242,7 @@ def find(path, all=False):
 def get_finders():
     """
     Function to yield finder instances.
-    
-    This also dynamically creates storages/finders by
-    looking at the MEDIA_DIRNAMES setting.
     """
-    static_covered = (
-        'staticfiles.finders.AppDirectoriesFinder' in FINDERS)
-    for dirname in MEDIA_DIRNAMES:
-        if dirname == 'static' and static_covered:
-            # don't generate a dynamic AppDirectoriesFinder for a dirname of 'static'
-            continue
-        capitalized_dirname = dirname.capitalize()
-        storage_class = type('%sAppStaticStorage' % capitalized_dirname,
-                             (AppStaticStorage,), {'source_dir': dirname})
-        yield type('%sFinder' % capitalized_dirname,
-                   (AppDirectoriesFinder,), {'storage_class': storage_class})()
     for finder_path in settings.FINDERS:
         yield get_finder(finder_path)
 
