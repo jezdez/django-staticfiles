@@ -20,3 +20,4 @@ downloads/*
 bin/*
 develop-eggs/*.egg-link
 docs/_build
+tests/project/site_media/*
