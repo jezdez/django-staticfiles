@@ -11,11 +11,6 @@ URL = getattr(settings, 'STATIC_URL', None)
 # which hold static files and should be taken into account
 DIRS = getattr(settings, 'STATICFILES_DIRS', ())
 
-# Apps that have media in <app>/media, not in <app>/media/<app>,
-# e.g. django.contrib.admin
-PREPEND_LABEL_APPS = getattr(settings, 'STATICFILES_PREPEND_LABEL_APPS',
-                             ('django.contrib.admin',))
-
 # Apps that shouldn't be taken into account when collecting app media
 EXCLUDED_APPS = getattr(settings, 'STATICFILES_EXCLUDED_APPS', ())
 
