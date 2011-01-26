@@ -139,6 +139,8 @@ class TestFindStatic(BuildStaticTestCase, TestDefaults):
             sys.stdout.seek(0)
             lines = [l.strip() for l in sys.stdout.readlines()]
             contents = open(lines[1].strip()).read()
+        except IndexError, e:
+            raise IOError(e)
         finally:
             sys.stdout = _stdout
         return contents

@@ -19,6 +19,9 @@ if not settings.configured:
         STATICFILES_DIRS = (
             os.path.join(TEST_ROOT, 'project', 'documents'),
         ),
+        STATICFILES_EXCLUDED_APPS = (
+            'tests.apps.skip',
+        ),
         STATICFILES_FINDERS = (
             'staticfiles.finders.FileSystemFinder',
             'staticfiles.finders.AppDirectoriesFinder',
