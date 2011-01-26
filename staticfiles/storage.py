@@ -91,7 +91,7 @@ class AppStaticStorage(TimeAwareFileSystemStorage):
 
 class LegacyAppMediaStorage(AppStaticStorage):
     """
-    A legacy file finder that provides a migration path for the
+    A legacy app storage backend that provides a migration path for the
     default directory name in previous versions of staticfiles, "media".
     """
     source_dir = 'media'
