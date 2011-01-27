@@ -10,7 +10,7 @@ from staticfiles import finders, settings
 
 class Command(NoArgsCommand):
     """
-    Command that allows to copy or symlink media files from different
+    Command that allows to copy or symlink static files from different
     locations to the settings.STATIC_ROOT.
     """
     option_list = NoArgsCommand.option_list + (
