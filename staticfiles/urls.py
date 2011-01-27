@@ -1,31 +1,30 @@
 import re
-from django.conf.urls.defaults import patterns, url
 from django.conf import settings
+from django.conf.urls.defaults import patterns, url, include
+from django.core.exceptions import ImproperlyConfigured
 
-from staticfiles.settings import URL as STATIC_URL
-
+from staticfiles.settings import URL
 
 urlpatterns = []
 
+# only serve non-fqdn URLs
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        url(r'^(?P<path>.*)$', 'staticfiles.views.serve'),
+    )
 
-def staticfiles_urlpatterns():
-    # use global urlpatterns to avoid multiple URL construction
-    global urlpatterns
-    if not urlpatterns:
-        if ':' not in STATIC_URL:
-            base_url = re.escape(STATIC_URL[1:])
-            urlpatterns += patterns('staticfiles.views',
-                url(r'^%s(?P<path>.*)$' % base_url, 'serve'),
-            )
-        if settings.MEDIA_ROOT and settings.MEDIA_URL and \
-                                ':' not in settings.MEDIA_URL:
-            base_url = re.escape(settings.MEDIA_URL[1:])
-            urlpatterns += patterns('django.views.static',
-                url(r'^%s(?P<path>.*)$' % base_url, 'serve',
-                    {'document_root': settings.MEDIA_ROOT}),
-            )
-    return urlpatterns
-
-
-# for backwards compatibility
-urlpatterns = staticfiles_urlpatterns()
+def staticfiles_urlpatterns(prefix=None):
+    """
+    Helper function to return a URL pattern for serving static files.
+    """
+    if not settings.DEBUG:
+        return []
+    if prefix is None:
+        prefix = URL
+    if not prefix or '://' in prefix:
+        raise ImproperlyConfigured(
+            "The prefix for the 'staticfiles_urlpatterns' helper is invalid.")
+    if prefix.startswith("/"):
+        prefix = prefix[1:]
+    return patterns('',
+        url(r'^%s' % re.escape(prefix), include(urlpatterns)),)

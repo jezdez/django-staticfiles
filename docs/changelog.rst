@@ -1,10 +1,10 @@
 Changelog
 =========
 
-v0.3.4 (2010-12-25)
+v0.4.0 (XXXX-XX-XX)
 -------------------
 
-* Special remove-embarrassment-release.
+* Renamed ``StaticFileStorage`` to ``StaticFilesStorage``.
 
 v0.3.3 (2010-12-23)
 -------------------

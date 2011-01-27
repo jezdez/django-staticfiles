@@ -46,30 +46,6 @@ It should be defined as a sequence of ``(prefix, path)`` tuples, e.g.::
         ('common', '/opt/webfiles/common'),
     )
 
-``STATICFILES_PREPEND_LABEL_APPS``
-----------------------------------
-
-:Default: ``('django.contrib.admin',)``
-
-A sequence of app paths that should be prefixed with the label name.
-For example, ``django.contrib.admin`` media files should be served from
-``admin/[js,css,images]`` rather than the media files getting served directly
-from the static root.
-
-``STATICFILES_MEDIA_DIRNAMES``
-------------------------------
-
-:Default: ``('media',)``
-
-A sequence of directory names to be used when searching for media files in
-installed apps, e.g. if an app has its media files in ``<app>/static``
-use::
-
-    STATICFILES_MEDIA_DIRNAMES = (
-        'media',
-        'static',
-    )
-
 ``STATICFILES_EXCLUDED_APPS``
 -----------------------------
 

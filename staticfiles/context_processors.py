@@ -1,4 +1,9 @@
-from staticfiles.settings import URL
+from django.conf import settings
 
 def static_url(request):
-    return {'STATIC_URL': URL}
+    """
+    Adds static-related context variables to the context.
+
+    """
+    return {'STATIC_URL': settings.STATIC_URL}
+
