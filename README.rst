@@ -5,7 +5,7 @@ django-staticfiles
 This is a Django app that provides helpers for serving static files.
 
 Django developers mostly concern themselves with the dynamic parts of web
-applications -- the views and templates that render anew for each request. But
+applications -- the views and templates that render new for each request. But
 web applications have other parts: the static media files (images, CSS,
 Javascript, etc.) that are needed to render a complete web page.
 
