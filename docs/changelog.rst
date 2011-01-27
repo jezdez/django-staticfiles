@@ -1,10 +1,37 @@
 Changelog
 =========
 
-v0.4.0 (XXXX-XX-XX)
--------------------
+v1.0.0-alpha (XXXX-XX-XX)
+-------------------------
+
+.. note:: ``django-staticfiles`` is a backport of the staticfiles app in
+   Django contrib. If you're upgrading from ``django-staticfiles`` < ``1.0``,
+   you'll need to make a few changes. See changes below.
 
 * Renamed ``StaticFileStorage`` to ``StaticFilesStorage``.
+
+* Application files should now live in a ``static`` directory in each app
+  (previous versions of ``django-staticfiles`` used the name ``media``,
+  which was slightly confusing).
+
+* The management commands ``build_static`` and ``resolve_static`` are now
+  called ``collectstatic`` and ``findstatic``.
+
+* The settings ``STATICFILES_PREPEND_LABEL_APPS`` and
+  ``STATICFILES_MEDIA_DIRNAMES`` were removed.
+
+* The setting ``STATICFILES_RESOLVERS`` was removed, and replaced by the new
+  ``STATICFILES_FINDERS`` setting.
+
+* The default for ``STATICFILES_STORAGE`` was renamed from
+  ``staticfiles.storage.StaticFileStorage`` to
+  ``staticfiles.storage.StaticFilesStorage``
+
+* If using ``runserver`` for local development (and the setting
+  ``DEBUG`` setting is ``True``), you no longer need to add
+  anything to your URLconf for serving static files in development.
+
+
 
 v0.3.3 (2010-12-23)
 -------------------
@@ -12,7 +39,7 @@ v0.3.3 (2010-12-23)
 .. note:: With the adoption of django-staticfiles in Django >=1.3.X as a
    contrib app, the django-staticfiles 0.3.X series will be the last series
    to support Django 1.2.X and lower. Any new features will occur in
-   later releases and target Django >=1.3.X though.
+   later releases and target Django >=1.3.X.
 
 * Fixed an issue that could prevent the ``build_static`` management command
   to fail if the destination storage doesn't implement the ``listdir``
