@@ -120,5 +120,8 @@ setup(
         'Framework :: Django',
     ],
     zip_safe=False,
-    test_suite="staticfiles.tests.runtests.runtests",
+    test_suite='staticfiles.tests.runtests.runtests',
+    tests_require=[
+        'Django'
+    ],
 )
