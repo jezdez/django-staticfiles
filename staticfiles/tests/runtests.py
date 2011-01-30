@@ -20,24 +20,24 @@ if not settings.configured:
             os.path.join(TEST_ROOT, 'project', 'documents'),
         ),
         STATICFILES_EXCLUDED_APPS = (
-            'tests.apps.skip',
+            'staticfiles.tests.apps.skip',
         ),
         STATICFILES_FINDERS = (
             'staticfiles.finders.FileSystemFinder',
             'staticfiles.finders.AppDirectoriesFinder',
             'staticfiles.finders.DefaultStorageFinder'
         ),
-        ROOT_URLCONF = 'tests.urls',
+        ROOT_URLCONF = 'staticfiles.tests.urls',
         TEMPLATE_DIRS = (
             os.path.join(TEST_ROOT, 'project', 'templates'),
         ),
         INSTALLED_APPS = [
             'django.contrib.admin',
             'staticfiles',
-            'tests',
-            'tests.apps.test',
-            'tests.apps.no_label',
-            'tests.apps.skip',
+            'staticfiles.tests',
+            'staticfiles.tests.apps.test',
+            'staticfiles.tests.apps.no_label',
+            'staticfiles.tests.apps.skip',
         ],
     )
 
