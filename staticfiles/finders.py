@@ -10,7 +10,7 @@ from django.utils._os import safe_join
 
 from staticfiles import utils, settings, storage
 
-_finders = {}
+_finders = SortedDict()
 
 
 class BaseFinder(object):

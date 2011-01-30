@@ -224,7 +224,7 @@ class TestBuildStaticNonLocalStorage(BuildStaticTestCase, TestNoFilesCreated):
     """
     def setUp(self):
         self.old_staticfiles_storage = settings.STORAGE
-        settings.STORAGE = 'tests.storage.DummyStorage'
+        settings.STORAGE = 'staticfiles.tests.storage.DummyStorage'
         super(TestBuildStaticNonLocalStorage, self).setUp()
 
     def tearDown(self):
@@ -255,7 +255,7 @@ class TestServeStatic(StaticFilesTestCase):
     """
     Test static asset serving view.
     """
-    urls = 'tests.urls.default'
+    urls = 'staticfiles.tests.urls.default'
 
     def _response(self, filepath):
         return self.client.get(
@@ -290,7 +290,7 @@ class TestServeStaticWithURLHelper(TestServeStatic, TestDefaults):
     """
     Test static asset serving view with staticfiles_urlpatterns helper.
     """
-    urls = 'tests.urls.helper'
+    urls = 'staticfiles.tests.urls.helper'
 
 
 class TestServeAdminMedia(TestServeStatic):
