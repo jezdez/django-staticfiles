@@ -45,13 +45,13 @@ class FileSystemFinder(BaseFinder):
         # Maps dir paths to an appropriate storage instance
         self.storages = SortedDict()
         # Set of locations with static files
-        self.locations = set()
+        self.locations = list()
         for root in settings.DIRS:
             if isinstance(root, (list, tuple)):
                 prefix, root = root
             else:
                 prefix = ''
-            self.locations.add((prefix, root))
+            self.locations.append((prefix, root))
         # Don't initialize multiple storages for the same location
         for prefix, root in self.locations:
             filesystem_storage = storage.TimeAwareFileSystemStorage(location=root)
