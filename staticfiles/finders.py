@@ -42,22 +42,21 @@ class FileSystemFinder(BaseFinder):
     to locate files.
     """
     def __init__(self, apps=None, *args, **kwargs):
+        # List of locations with static files
+        self.locations = []
         # Maps dir paths to an appropriate storage instance
         self.storages = SortedDict()
-        # Set of locations with static files
-        self.locations = set()
         for root in settings.DIRS:
             if isinstance(root, (list, tuple)):
                 prefix, root = root
             else:
                 prefix = ''
-            self.locations.add((prefix, root))
-        # Don't initialize multiple storages for the same location
+            if (prefix, root) not in self.locations:
+                self.locations.append((prefix, root))
         for prefix, root in self.locations:
             filesystem_storage = storage.TimeAwareFileSystemStorage(location=root)
             filesystem_storage.prefix = prefix
             self.storages[root] = filesystem_storage
-
         super(FileSystemFinder, self).__init__(*args, **kwargs)
 
     def find(self, path, all=False):
