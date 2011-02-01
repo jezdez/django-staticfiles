@@ -31,7 +31,7 @@ default_storage = DefaultStorage()
 class StaticFilesStorage(TimeAwareFileSystemStorage):
     """
     Standard file system storage for static files.
-    
+
     The defaults for ``location`` and ``base_url`` are
     ``STATIC_ROOT`` and ``STATIC_URL``.
     """
@@ -49,8 +49,7 @@ class StaticFilesStorage(TimeAwareFileSystemStorage):
             raise ImproperlyConfigured("You're using the staticfiles app "
                 "without having set the STATIC_URL setting. Set it to "
                 "URL that handles the files served from STATIC_ROOT.")
-        if django_settings.DEBUG:
-            utils.check_settings()
+        utils.check_settings()
         super(StaticFilesStorage, self).__init__(location, base_url, *args, **kwargs)
 
 

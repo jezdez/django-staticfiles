@@ -1,6 +1,5 @@
 import os
 from django.conf import settings as django_settings
-from django.db import models
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.datastructures import SortedDict
@@ -46,11 +45,19 @@ class FileSystemFinder(BaseFinder):
         self.locations = []
         # Maps dir paths to an appropriate storage instance
         self.storages = SortedDict()
+        if not isinstance(settings.DIRS, (list, tuple)):
+            raise ImproperlyConfigured(
+                "Your STATICFILES_DIRS setting is not a tuple or list; "
+                "perhaps you forgot a trailing comma?")
         for root in settings.DIRS:
             if isinstance(root, (list, tuple)):
                 prefix, root = root
             else:
                 prefix = ''
+            if os.path.abspath(settings.ROOT) == os.path.abspath(root):
+                raise ImproperlyConfigured(
+                    "The STATICFILES_DIRS setting should "
+                    "not contain the STATIC_ROOT setting")
             if (prefix, root) not in self.locations:
                 self.locations.append((prefix, root))
         for prefix, root in self.locations:
