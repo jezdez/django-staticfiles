@@ -19,7 +19,7 @@ def staticfiles_urlpatterns(prefix=None):
     if not settings.DEBUG:
         return []
     if prefix is None:
-        prefix = settings.STATICFILES_URL
+        prefix = settings.STATIC_URL
     if not prefix or '://' in prefix:
         raise ImproperlyConfigured(
             "The prefix for the 'staticfiles_urlpatterns' helper is invalid.")
