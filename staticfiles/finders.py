@@ -1,5 +1,4 @@
 import os
-from django.conf import settings as django_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.datastructures import SortedDict
@@ -7,7 +6,8 @@ from django.utils.functional import memoize, LazyObject
 from django.utils.importlib import import_module
 from django.utils._os import safe_join
 
-from staticfiles import utils, settings, storage
+from staticfiles import utils, storage
+from staticfiles.conf import settings
 
 _finders = SortedDict()
 
@@ -45,16 +45,16 @@ class FileSystemFinder(BaseFinder):
         self.locations = []
         # Maps dir paths to an appropriate storage instance
         self.storages = SortedDict()
-        if not isinstance(settings.DIRS, (list, tuple)):
+        if not isinstance(settings.STATICFILES_DIRS, (list, tuple)):
             raise ImproperlyConfigured(
                 "Your STATICFILES_DIRS setting is not a tuple or list; "
                 "perhaps you forgot a trailing comma?")
-        for root in settings.DIRS:
+        for root in settings.STATICFILES_DIRS:
             if isinstance(root, (list, tuple)):
                 prefix, root = root
             else:
                 prefix = ''
-            if os.path.abspath(settings.ROOT) == os.path.abspath(root):
+            if os.path.abspath(settings.STATIC_ROOT) == os.path.abspath(root):
                 raise ImproperlyConfigured(
                     "The STATICFILES_DIRS setting should "
                     "not contain the STATIC_ROOT setting")
@@ -117,9 +117,9 @@ class AppDirectoriesFinder(BaseFinder):
         # Mapping of app module paths to storage instances
         self.storages = SortedDict()
         if apps is None:
-            apps = django_settings.INSTALLED_APPS
+            apps = settings.INSTALLED_APPS
         for app in apps:
-            if app in settings.EXCLUDED_APPS:
+            if app in settings.STATICFILES_EXCLUDED_APPS:
                 continue
             app_storage = self.storage_class(app)
             if os.path.isdir(app_storage.location):
@@ -249,7 +249,7 @@ def get_finders():
     """
     Function to yield finder instances.
     """
-    for finder_path in settings.FINDERS:
+    for finder_path in settings.STATICFILES_FINDERS:
         yield get_finder(finder_path)
 
 def _get_finder(import_path):

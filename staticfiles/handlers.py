@@ -2,10 +2,8 @@ import urllib
 from urlparse import urlparse
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.core.handlers.wsgi import WSGIHandler
 
-from staticfiles import utils
 from staticfiles.views import serve
 
 class StaticFilesHandler(WSGIHandler):
@@ -26,7 +24,6 @@ class StaticFilesHandler(WSGIHandler):
         return settings.STATIC_ROOT
 
     def get_base_url(self):
-        utils.check_settings()
         return settings.STATIC_URL
 
     def _should_handle(self, path):

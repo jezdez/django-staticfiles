@@ -1,34 +1,59 @@
-from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
-# The directory in which the static files are collected in
-ROOT = getattr(settings, 'STATIC_ROOT', '')
+from staticfiles.utils import AppSettings
 
-# The URL path to STATIC_ROOT
-URL = getattr(settings, 'STATIC_URL', None)
+class StaticfilesSettings(AppSettings):
+    # The directory in which the static files are collected in
+    ROOT = ''
+    # The URL path to STATIC_ROOT
+    URL = None
+    # A tuple of two-tuples with a name and the path of additional directories
+    # which hold static files and should be taken into account
+    DIRS = ()
+    # Apps that shouldn't be taken into account when collecting app media
+    EXCLUDED_APPS = ()
+    # Destination storage
+    STORAGE = 'staticfiles.storage.StaticFilesStorage'
+    # List of resolver classes that know how to find static files in
+    # various locations.
+    RESOLVERS = None
+    # List of finder classes that know how to find static files in
+    # various locations.
+    FINDERS = (
+        'staticfiles.finders.FileSystemFinder',
+        'staticfiles.finders.AppDirectoriesFinder',
+#       'staticfiles.finders.DefaultStorageFinder',
+    )
 
-# A tuple of two-tuples with a name and the path of additional directories
-# which hold static files and should be taken into account
-DIRS = getattr(settings, 'STATICFILES_DIRS', ())
+    def configure_root(self, value):
+        """
+        Use STATIC_ROOT since it doesn't has the default prefix
+        """
+        root = value or getattr(settings, 'STATIC_ROOT', None)
+        if (self.MEDIA_ROOT and root) and (self.MEDIA_ROOT == root):
+            raise ImproperlyConfigured("The MEDIA_ROOT and STATIC_ROOT "
+                                       "settings must have different values")
+        self.STATIC_ROOT = root
+        return root
 
-# Apps that shouldn't be taken into account when collecting app media
-EXCLUDED_APPS = getattr(settings, 'STATICFILES_EXCLUDED_APPS', ())
+    def configure_url(self, value):
+        """
+        Use STATIC_URL since it doesn't has the default prefix
+        """
+        url = value or getattr(settings, 'STATIC_URL', None)
+        if not url:
+            raise ImproperlyConfigured("You're using the staticfiles app "
+                                       "without having set the required "
+                                       "STATIC_URL setting.")
+        if url == self.MEDIA_URL:
+            raise ImproperlyConfigured("The MEDIA_URL and STATIC_URL "
+                                       "settings must have different values")
+        self.STATIC_URL = url
+        return url
 
-# Destination storage
-STORAGE = getattr(settings, 'STATICFILES_STORAGE',
-                  'staticfiles.storage.StaticFilesStorage')
-
-# List of resolver classes that know how to find static files in
-# various locations.
-if getattr(settings, 'STATICFILES_RESOLVERS', None):
-    raise ImproperlyConfigured(
-        "The resolver API has been replaced by the finders API and "
-        "its STATICFILES_FINDERS setting. Please update your settings.")
-
-# List of finder classes that know how to find static files in
-# various locations.
-FINDERS = getattr(settings, 'STATICFILES_FINDERS',
-                  ('staticfiles.finders.FileSystemFinder',
-                   'staticfiles.finders.AppDirectoriesFinder',
-#                  'staticfiles.finders.DefaultStorageFinder'
-                  ))
+    def configure_resolvers(self, value):
+        if value:
+            raise ImproperlyConfigured(
+                "The resolver API has been replaced by the finders API and "
+                "its STATICFILES_FINDERS setting. Please update your settings.")
