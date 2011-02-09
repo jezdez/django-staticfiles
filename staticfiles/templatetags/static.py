@@ -33,7 +33,7 @@ class PrefixNode(template.Node):
     @classmethod
     def handle_simple(cls, name):
         try:
-            from django.conf import settings
+            from staticfiles.conf import settings
         except ImportError:
             prefix = ''
         else:

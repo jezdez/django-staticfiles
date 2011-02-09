@@ -1,9 +1,8 @@
 import re
-from django.conf import settings
 from django.conf.urls.defaults import patterns, url, include
 from django.core.exceptions import ImproperlyConfigured
 
-from staticfiles.settings import URL
+from staticfiles.conf import settings
 
 urlpatterns = []
 
@@ -20,7 +19,7 @@ def staticfiles_urlpatterns(prefix=None):
     if not settings.DEBUG:
         return []
     if prefix is None:
-        prefix = URL
+        prefix = settings.STATICFILES_URL
     if not prefix or '://' in prefix:
         raise ImproperlyConfigured(
             "The prefix for the 'staticfiles_urlpatterns' helper is invalid.")

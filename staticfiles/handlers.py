@@ -2,10 +2,8 @@ import urllib
 from urlparse import urlparse
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.core.handlers.wsgi import WSGIHandler
 
-from staticfiles import utils
 from staticfiles.views import serve
 
 class StaticFilesHandler(WSGIHandler):
@@ -26,12 +24,6 @@ class StaticFilesHandler(WSGIHandler):
         return settings.STATIC_ROOT
 
     def get_base_url(self):
-        if not settings.STATIC_URL:
-            raise ImproperlyConfigured("You're using the staticfiles app "
-                "without having set the STATIC_URL setting. Set it to "
-                "URL that handles the files served from STATIC_ROOT.")
-        if settings.DEBUG:
-            utils.check_settings()
         return settings.STATIC_URL
 
     def _should_handle(self, path):

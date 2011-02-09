@@ -4,7 +4,6 @@ development, and SHOULD NOT be used in a production setting.
 
 """
 import os
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.http import Http404
 
@@ -14,6 +13,7 @@ except ImportError:
     from django.views.static import serve as django_serve
 
 from staticfiles import finders
+from staticfiles.conf import settings
 
 def serve(request, path, show_indexes=False, insecure=False):
     """

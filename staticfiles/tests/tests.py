@@ -6,14 +6,13 @@ import sys
 import tempfile
 from StringIO import StringIO
 
-from django.conf import settings as django_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
 from django.core.management import call_command
-from django.template import Template, Context
 from django.test import TestCase
 
-from staticfiles import finders, storage, settings
+from staticfiles import finders, storage
+from staticfiles.conf import settings
 
 TEST_ROOT = os.path.normcase(os.path.dirname(__file__))
 
@@ -41,8 +40,8 @@ class StaticFilesTestCase(TestCase):
     Test case with a couple utility assertions.
     """
     def setUp(self):
-        self.old_debug = django_settings.DEBUG
-        django_settings.DEBUG = True
+        self.old_debug = settings.DEBUG
+        settings.DEBUG = True
         # Clear the cached default_storage out, this is because when it first
         # gets accessed (by some other test), it evaluates settings.MEDIA_ROOT,
         # since we're planning on changing that we need to clear out the cache.
@@ -67,14 +66,14 @@ class BuildStaticTestCase(StaticFilesTestCase):
     """
     def setUp(self):
         super(BuildStaticTestCase, self).setUp()
-        self.old_root = settings.ROOT
-        settings.ROOT = tempfile.mkdtemp()
+        self.old_root = settings.STATIC_ROOT
+        settings.STATIC_ROOT = tempfile.mkdtemp()
         self.run_collectstatic()
 
     def tearDown(self):
         # Use our own error handler that can handle .svn dirs on Windows
-        shutil.rmtree(settings.ROOT, ignore_errors=True, onerror=rmtree_errorhandler)
-        settings.ROOT = self.old_root
+        shutil.rmtree(settings.STATIC_ROOT, ignore_errors=True, onerror=rmtree_errorhandler)
+        settings.STATIC_ROOT = self.old_root
         super(BuildStaticTestCase, self).tearDown()
 
     def run_collectstatic(self, **kwargs):
@@ -83,7 +82,7 @@ class BuildStaticTestCase(StaticFilesTestCase):
 
     def _get_file(self, filepath):
         assert filepath, 'filepath is empty.'
-        filepath = os.path.join(settings.ROOT, filepath)
+        filepath = os.path.join(settings.STATIC_ROOT, filepath)
         f = open(filepath)
         try:
             return f.read()
@@ -207,7 +206,7 @@ class TestNoFilesCreated(object):
         """
         Make sure no files were create in the destination directory.
         """
-        self.assertEquals(os.listdir(settings.ROOT), [])
+        self.assertEquals(os.listdir(settings.STATIC_ROOT), [])
 
 
 class TestBuildStaticDryRun(BuildStaticTestCase, TestNoFilesCreated):
@@ -223,13 +222,13 @@ class TestBuildStaticNonLocalStorage(BuildStaticTestCase, TestNoFilesCreated):
     Tests for #15035
     """
     def setUp(self):
-        self.old_staticfiles_storage = settings.STORAGE
-        settings.STORAGE = 'staticfiles.tests.storage.DummyStorage'
+        self.old_staticfiles_storage = settings.STATICFILES_STORAGE
+        settings.STATICFILES_STORAGE = 'staticfiles.tests.storage.DummyStorage'
         super(TestBuildStaticNonLocalStorage, self).setUp()
 
     def tearDown(self):
         super(TestBuildStaticNonLocalStorage, self).tearDown()
-        settings.STORAGE = self.old_staticfiles_storage
+        settings.STATICFILES_STORAGE = self.old_staticfiles_storage
 
 
 if sys.platform != 'win32':
@@ -248,7 +247,7 @@ if sys.platform != 'win32':
             """
             With ``--link``, symbolic links are created.
             """
-            self.assertTrue(os.path.islink(os.path.join(settings.ROOT, 'test.txt')))
+            self.assertTrue(os.path.islink(os.path.join(settings.STATIC_ROOT, 'test.txt')))
 
 
 class TestServeStatic(StaticFilesTestCase):
@@ -259,7 +258,7 @@ class TestServeStatic(StaticFilesTestCase):
 
     def _response(self, filepath):
         return self.client.get(
-            posixpath.join(settings.URL, filepath))
+            posixpath.join(settings.STATIC_URL, filepath))
 
     def assertFileContains(self, filepath, text):
         self.assertContains(self._response(filepath), text)
@@ -274,7 +273,7 @@ class TestServeDisabled(TestServeStatic):
     """
     def setUp(self):
         super(TestServeDisabled, self).setUp()
-        django_settings.DEBUG = False
+        settings.DEBUG = False
 
     def test_disabled_serving(self):
         self.assertRaises(ImproperlyConfigured, self._response, 'test.txt')
@@ -299,7 +298,7 @@ class TestServeAdminMedia(TestServeStatic):
     """
     def _response(self, filepath):
         return self.client.get(
-            posixpath.join(django_settings.ADMIN_MEDIA_PREFIX, filepath))
+            posixpath.join(settings.ADMIN_MEDIA_PREFIX, filepath))
 
     def test_serve_admin_media(self):
         self.assertFileContains('css/base.css', 'body')
@@ -349,8 +348,8 @@ class TestDefaultStorageFinder(StaticFilesTestCase, FinderTestCase):
     def setUp(self):
         super(TestDefaultStorageFinder, self).setUp()
         self.finder = finders.DefaultStorageFinder(
-            storage=storage.StaticFilesStorage(location=django_settings.MEDIA_ROOT))
-        test_file_path = os.path.join(django_settings.MEDIA_ROOT, 'media-file.txt')
+            storage=storage.StaticFilesStorage(location=settings.MEDIA_ROOT))
+        test_file_path = os.path.join(settings.MEDIA_ROOT, 'media-file.txt')
         self.find_first = ('media-file.txt', test_file_path)
         self.find_all = ('media-file.txt', [test_file_path])
 

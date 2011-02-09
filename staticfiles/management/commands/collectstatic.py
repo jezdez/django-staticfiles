@@ -6,7 +6,8 @@ from optparse import make_option
 from django.core.files.storage import get_storage_class
 from django.core.management.base import CommandError, NoArgsCommand
 
-from staticfiles import finders, settings
+from staticfiles import finders
+from staticfiles.conf import settings
 
 class Command(NoArgsCommand):
     """
@@ -36,7 +37,7 @@ class Command(NoArgsCommand):
         self.copied_files = []
         self.symlinked_files = []
         self.unmodified_files = []
-        self.storage = get_storage_class(settings.STORAGE)()
+        self.storage = get_storage_class(settings.STATICFILES_STORAGE)()
         try:
             self.storage.path('')
         except NotImplementedError:
@@ -70,7 +71,7 @@ location as specified in your settings file ('%s').
 This will overwrite existing files.
 Are you sure you want to do this?
 
-Type 'yes' to continue, or 'no' to cancel: """ % settings.ROOT)
+Type 'yes' to continue, or 'no' to cancel: """ % settings.STATIC_ROOT)
             if confirm != 'yes':
                 raise CommandError("Collecting static files cancelled.")
 
@@ -92,7 +93,7 @@ Type 'yes' to continue, or 'no' to cancel: """ % settings.ROOT)
             self.stdout.write("\n%s static file%s %s to '%s'%s.\n"
                               % (actual_count, actual_count != 1 and 's' or '',
                                  symlink and 'symlinked' or 'copied',
-                                 settings.ROOT,
+                                 settings.STATIC_ROOT,
                                  unmodified_count and ' (%s unmodified)'
                                  % unmodified_count or ''))
 
