@@ -16,12 +16,15 @@ except ImportError:
 
     class Command(BaseCommand):
         option_list = BaseCommand.option_list + (
+            make_option('--noreload', action='store_false', dest='use_reloader', default=True,
+                help='Tells Django to NOT use the auto-reloader.'),
             make_option('--nostatic', action="store_false", dest='use_static_handler', default=True,
                 help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
             make_option('--insecure', action="store_true", dest='insecure_serving', default=False,
                 help='Allows serving static files even if DEBUG is False.'),
         )
         help = "Starts a lightweight Web server for development and also serves static files."
+        args = '[optional port number, or ipaddr:port]'
 
         def get_handler(self, *args, **options):
             """
