@@ -1,19 +1,39 @@
+import os
+import django
+import sys
+from optparse import make_option
+
+from django.conf import settings
+from django.core.handlers.wsgi import WSGIHandler
+from django.core.servers.basehttp import run, WSGIServerException
+from django.core.management.base import BaseCommand, CommandError
+
+from staticfiles.handlers import StaticFilesHandler
+
 try:
     # Use upstream runserver command if existing
-    from django.contrib.staticfiles.management.commands.runserver import Command
+    from django.contrib.staticfiles.management.commands.runserver import Command as RunserverCommand
+
+    class Command(RunserverCommand):
+        """
+        Subclass of the standard runserver command that overrides the
+        staticfiles handler to use this app's finders.
+        """
+        def get_handler(self, *args, **options):
+            """
+            Returns the static files serving handler.
+            """
+            handler = WSGIHandler()
+            use_static_handler = options.get('use_static_handler', True)
+            insecure_serving = options.get('insecure_serving', False)
+            if (settings.DEBUG and use_static_handler or
+                    (use_static_handler and insecure_serving)):
+                handler = StaticFilesHandler(handler)
+            return handler
+
 except ImportError:
-    import os
-    import django
-    import sys
-    from optparse import make_option
 
-    from django.conf import settings
-    from django.core.servers.basehttp import run, WSGIServerException
-    from django.core.handlers.wsgi import WSGIHandler
-    from django.core.management.base import BaseCommand, CommandError
-
-    from staticfiles.handlers import StaticFilesHandler
-
+    # No upstream staticfiles runserver found, create our own bare bones command
     class Command(BaseCommand):
         option_list = BaseCommand.option_list + (
             make_option('--noreload', action='store_false', dest='use_reloader', default=True,
