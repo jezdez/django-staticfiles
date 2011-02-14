@@ -4,21 +4,20 @@ development, and SHOULD NOT be used in a production setting.
 
 """
 import os
+import posixpath
+import urllib
+
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.http import Http404
-
-try:
-    from django.contrib.staticfiles.views import serve as django_serve
-except ImportError:
-    from django.views.static import serve as django_serve
+from django.views import static
 
 from staticfiles import finders
-from staticfiles.conf import settings
 
-def serve(request, path, show_indexes=False, insecure=False):
+def serve(request, path, document_root=None, insecure=False, **kwargs):
     """
     Serve static files below a given point in the directory structure or
-    from locations inferred from the static files finders.
+    from locations inferred from the staticfiles finders.
 
     To use, put a URL pattern such as::
 
@@ -26,24 +25,15 @@ def serve(request, path, show_indexes=False, insecure=False):
 
     in your URLconf.
 
-    If you provide the ``document_root`` parameter, the file won't be looked
-    up with the staticfiles finders, but in the given filesystem path, e.g.::
-
-    (r'^(?P<path>.*)$', 'staticfiles.views.serve', {'document_root' : '/path/to/my/files/'})
-
-    You may also set ``show_indexes`` to ``True`` if you'd like to serve a
-    basic index of the directory.  This index view will use the
-    template hardcoded below, but if you'd like to override it, you can create
-    a template called ``static/directory_index.html``.
+    It automatically falls back to django.views.static
     """
     if not settings.DEBUG and not insecure:
-        raise ImproperlyConfigured("The view to serve static files can only "
-                                   "be used if the DEBUG setting is True or "
-                                   "the --insecure option of 'runserver' is "
-                                   "used")
-    absolute_path = finders.find(path)
+        raise ImproperlyConfigured("The staticfiles view can only be used in "
+                                   "debug mode or if the the --insecure "
+                                   "option of 'runserver' is used")
+    normalized_path = posixpath.normpath(urllib.unquote(path)).lstrip('/')
+    absolute_path = finders.find(normalized_path)
     if not absolute_path:
-        raise Http404('"%s" could not be found' % path)
+        raise Http404("'%s' could not be found" % path)
     document_root, path = os.path.split(absolute_path)
-    return django_serve(request, path=path, document_root=document_root,
-                        show_indexes=show_indexes)
+    return static.serve(request, path, document_root=document_root, **kwargs)
