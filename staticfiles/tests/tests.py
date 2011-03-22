@@ -128,6 +128,12 @@ class TestDefaults(object):
         """
         self.assertFileContains(u'test/speçial.txt', u'speçial in the app dir')
 
+    def test_camelcase_filenames(self):
+        """
+        Can find a file with capital letters.
+        """
+        self.assertFileContains(u'test/camelCase.txt', u'camelCase')
+
     def test_excluded_apps(self):
         """
         Can not find file in an app in STATICFILES_EXCLUDED_APPS.
