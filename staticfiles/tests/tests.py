@@ -128,6 +128,12 @@ class TestDefaults(object):
         """
         self.assertFileContains(u'test/speçial.txt', u'speçial in the app dir')
 
+    def test_camelcase_filenames(self):
+        """
+        Can find a file with capital letters.
+        """
+        self.assertFileContains(u'test/camelCase.txt', u'camelCase')
+
     def test_excluded_apps(self):
         """
         Can not find file in an app in STATICFILES_EXCLUDED_APPS.
@@ -145,7 +151,8 @@ class TestFindStatic(BuildStaticTestCase, TestDefaults):
             call_command('findstatic', filepath, all=False, verbosity='0')
             sys.stdout.seek(0)
             lines = [l.strip() for l in sys.stdout.readlines()]
-            contents = codecs.open(lines[1].strip(), "r", "utf-8").read()
+            contents = codecs.open(
+                smart_unicode(lines[1].strip()), "r", "utf-8").read()
         except IndexError, e:
             raise IOError(e)
         finally:

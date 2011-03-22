@@ -41,13 +41,11 @@ class StaticFilesStorage(TimeAwareFileSystemStorage):
             base_url = settings.STATIC_URL
         if not location:
             raise ImproperlyConfigured("You're using the staticfiles app "
-                "without having set the STATIC_ROOT setting. Set it to "
-                "the absolute path of the directory that holds static files.")
+                "without having set the STATIC_ROOT setting.")
         # check for None since we might use a root URL (``/``)
         if base_url is None:
             raise ImproperlyConfigured("You're using the staticfiles app "
-                "without having set the STATIC_URL setting. Set it to "
-                "URL that handles the files served from STATIC_ROOT.")
+                "without having set the STATIC_URL setting.")
         super(StaticFilesStorage, self).__init__(location, base_url, *args, **kwargs)
 
 
