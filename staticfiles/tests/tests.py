@@ -151,7 +151,8 @@ class TestFindStatic(BuildStaticTestCase, TestDefaults):
             call_command('findstatic', filepath, all=False, verbosity='0')
             sys.stdout.seek(0)
             lines = [l.strip() for l in sys.stdout.readlines()]
-            contents = codecs.open(lines[1].strip(), "r", "utf-8").read()
+            contents = codecs.open(
+                smart_unicode(lines[1].strip()), "r", "utf-8").read()
         except IndexError, e:
             raise IOError(e)
         finally:
