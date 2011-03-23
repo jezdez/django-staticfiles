@@ -14,7 +14,7 @@ somewhere your web server can find it. However, in bigger projects -- especially
 those comprised of multiple apps -- dealing with the multiple sets of static
 files provided by each application starts to get tricky.
 
-That's what ``staticfiles`` is for: it collects media from each of your
+That's what ``staticfiles`` is for: it collects static files from each of your
 applications (and any other places you specify) into a single location
 that can easily be served in production.
 
@@ -22,10 +22,16 @@ The main website for django-staticfiles is
 `github.com/jezdez/django-staticfiles`_ where you can also file tickets.
 
 .. warning:: django-staticfiles was added to Django 1.3 as a contrib app.
-   For backwards compatible reasons, django-staticfiles 0.3.X series will be
-   the last series to only support Django 1.2.X and lower. Any new features
-   (including those backported from Django) will occur in later releases,
-   e.g. in django-staticfiles>=1.0.X.
+
+   The django-staticfiles 0.3.X series will only receive security and data los
+   bug fixes after the release of django-staticfiles 1.0. Any Django 1.2.X
+   project using django-staticfiles 0.3.X and lower should be upgraded to use
+   either Django's staticfiles app or django-staticfiles>=1.0 to profit from
+   the feature parity.
+
+   Since any new feature (including those backported from Django's staticfiles
+   app) will be added in releases >= 1.0.X of this app, you may want to chose
+   to use it instead of Django's own staticfiles app.
 
 Installation
 ------------

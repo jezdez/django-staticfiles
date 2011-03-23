@@ -116,14 +116,14 @@ Type 'yes' to continue, or 'no' to cancel: """)
             try:
                 # When was the target file modified last time?
                 target_last_modified = self.storage.modified_time(prefixed_path)
-            except (OSError, NotImplementedError):
+            except (OSError, NotImplementedError, AttributeError):
                 # The storage doesn't support ``modified_time`` or failed
                 pass
             else:
                 try:
                     # When was the source file modified last time?
                     source_last_modified = source_storage.modified_time(path)
-                except (OSError, NotImplementedError):
+                except (OSError, NotImplementedError, AttributeError):
                     pass
                 else:
                     # The full path of the target file
