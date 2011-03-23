@@ -26,12 +26,12 @@ The main website for django-staticfiles is
    The django-staticfiles 0.3.X series will only receive security and data los
    bug fixes after the release of django-staticfiles 1.0. Any Django 1.2.X
    project using django-staticfiles 0.3.X and lower should be upgraded to use
-   either Django's staticfiles app or django-staticfiles>=1.0 to profit from
-   the feature parity.
+   either Django 1.3's staticfiles app or django-staticfiles >= 1.0 to profit
+   from the new features and stability.
 
-   Since any new feature (including those backported from Django's staticfiles
-   app) will be added in releases >= 1.0.X of this app, you may want to chose
-   to use it instead of Django's own staticfiles app.
+   You may want to chose to use django-staticfiles instead of Django's own
+   staticfiles app since any new feature (additionally to those backported
+   from Django) will be released first in django-staticfiles.
 
 Installation
 ------------
