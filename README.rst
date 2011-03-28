@@ -71,6 +71,12 @@ Installation
   See the webserver's documentation for descriptions how to setup serving
   the deployment directory (``STATIC_ROOT``).
 
+- (optional) In case you use Django's admin app, make sure the
+  ``ADMIN_MEDIA_PREFIX`` setting is set correctly to a subpath of
+  ``STATIC_URL``::
+
+     ADMIN_MEDIA_PREFIX = STATIC_URL + "admin/"
+
 .. _github.com/jezdez/django-staticfiles: http://github.com/jezdez/django-staticfiles
 .. _in-development version: http://github.com/jezdez/django-staticfiles/tarball/develop#egg=django-staticfiles-dev
 .. _PyPI: http://pypi.python.org/pypi/django-staticfiles
