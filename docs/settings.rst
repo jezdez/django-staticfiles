@@ -92,7 +92,7 @@ This would allow you to refer to the local file
 
 :Default: ``[]``
 
-A sequence of app paths that should be ignored when searching for media
+A sequence of app paths that should be ignored when searching for static
 files::
 
     STATICFILES_EXCLUDED_APPS = (
@@ -139,3 +139,20 @@ setting.
 
 Static file finders are currently considered a private interface, and this
 interface is thus undocumented.
+
+Legacy 'media' dir finder (optional)
+""""""""""""""""""""""""""""""""""""
+
+To ease the burden of upgrading a Django project from a non-``staticfiles``
+setup, the optional finder backend
+:class:`staticfiles.finders.LegacyAppDirectoriesFinder` is shipped as part of
+``django-staticfiles``. When added to the STATICFILES_FINDERS_ setting, it'll
+enable ``staticfiles`` to use the ``media`` directory of the apps in
+``INSTALLED_APPS``, similarly
+:class:`staticfiles.finders.AppDirectoriesFinder`.
+
+This is especially useful for 3rd party apps that haven't been switched over
+to the ``static`` directory instead. If you want to use both ``static``
+**and** ``media``, don't forget to have
+:class:`staticfiles.finders.AppDirectoriesFinder` in the
+STATICFILES_FINDERS_, too.

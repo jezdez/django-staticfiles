@@ -26,12 +26,12 @@ The main website for django-staticfiles is
    The django-staticfiles 0.3.X series will only receive security and data los
    bug fixes after the release of django-staticfiles 1.0. Any Django 1.2.X
    project using django-staticfiles 0.3.X and lower should be upgraded to use
-   either Django's staticfiles app or django-staticfiles>=1.0 to profit from
-   the feature parity.
+   either Django 1.3's staticfiles app or django-staticfiles >= 1.0 to profit
+   from the new features and stability.
 
-   Since any new feature (including those backported from Django's staticfiles
-   app) will be added in releases >= 1.0.X of this app, you may want to chose
-   to use it instead of Django's own staticfiles app.
+   You may want to chose to use django-staticfiles instead of Django's own
+   staticfiles app since any new feature (additionally to those backported
+   from Django) will be released first in django-staticfiles.
 
 Installation
 ------------
@@ -70,6 +70,12 @@ Installation
 
   See the webserver's documentation for descriptions how to setup serving
   the deployment directory (``STATIC_ROOT``).
+
+- (optional) In case you use Django's admin app, make sure the
+  ``ADMIN_MEDIA_PREFIX`` setting is set correctly to a subpath of
+  ``STATIC_URL``::
+
+     ADMIN_MEDIA_PREFIX = STATIC_URL + "admin/"
 
 .. _github.com/jezdez/django-staticfiles: http://github.com/jezdez/django-staticfiles
 .. _in-development version: http://github.com/jezdez/django-staticfiles/tarball/develop#egg=django-staticfiles-dev
