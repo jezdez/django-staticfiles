@@ -11,10 +11,6 @@ collectstatic
 Collects the static files from all installed apps and copies them to the
 :ref:`staticfiles-storage`.
 
-You can limit the apps parsed by providing a list of app names::
-
-   $ python manage.py collectstatic --exclude-dirs admin polls
-
 Duplicate file names are resolved in a similar way to how template resolution
 works. Files are initially searched for in :ref:`staticfiles-dirs` locations,
 followed by apps in the order specified by the INSTALLED_APPS setting.

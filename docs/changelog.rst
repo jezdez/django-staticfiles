@@ -1,8 +1,17 @@
 Changelog
 =========
 
-v1.0.0-alpha (XXXX-XX-XX)
--------------------------
+v1.0.1 (2011-03-28)
+-------------------
+
+* Fixed an encoding related issue in the tests.
+
+* Updated tox configuration to use 1.3 release tarball.
+
+* Extended docs a bit.
+
+v1.0 (2011-03-23)
+-----------------
 
 .. note:: ``django-staticfiles`` is a backport of the staticfiles app in
    Django contrib. If you're upgrading from ``django-staticfiles`` < ``1.0``,
@@ -32,14 +41,25 @@ v1.0.0-alpha (XXXX-XX-XX)
   anything to your URLconf for serving static files in development.
 
 
+v0.3.4 (2010-12-25)
+-------------------
+
+* Minor documentation update.
 
 v0.3.3 (2010-12-23)
 -------------------
 
-.. note:: With the adoption of django-staticfiles in Django >=1.3.X as a
-   contrib app, the django-staticfiles 0.3.X series will be the last series
-   to support Django 1.2.X and lower. Any new features will occur in
-   later releases and target Django >=1.3.X.
+.. warning:: django-staticfiles was added to Django 1.3 as a contrib app.
+
+   The django-staticfiles 0.3.X series will only receive security and data los
+   bug fixes after the release of django-staticfiles 1.0. Any Django 1.2.X
+   project using django-staticfiles 0.3.X and lower should be upgraded to use
+   either Django 1.3's staticfiles app or django-staticfiles >= 1.0 to profit
+   from the new features and stability.
+
+   You may want to chose to use django-staticfiles instead of Django's own
+   staticfiles app since any new feature (additionally to those backported
+   from Django) will be released first in django-staticfiles.
 
 * Fixed an issue that could prevent the ``build_static`` management command
   to fail if the destination storage doesn't implement the ``listdir``
