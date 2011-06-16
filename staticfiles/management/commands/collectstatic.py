@@ -91,7 +91,7 @@ Type 'yes' to continue, or 'no' to cancel: """)
         actual_count = len(self.copied_files) + len(self.symlinked_files)
         unmodified_count = len(self.unmodified_files)
         if self.verbosity >= 1:
-            self.stdout.write(smart_str(u"\n%s static file%s %s to '%s'%s.\n"
+            sys.stdout.write(smart_str(u"\n%s static file%s %s to '%s'%s.\n"
                               % (actual_count, actual_count != 1 and 's' or '',
                                  symlink and 'symlinked' or 'copied',
                                  settings.STATIC_ROOT,
@@ -106,7 +106,7 @@ Type 'yes' to continue, or 'no' to cancel: """)
         if not msg.endswith("\n"):
             msg += "\n"
         if self.verbosity >= level:
-            self.stdout.write(msg)
+            sys.stdout.write(msg)
 
     def delete_file(self, path, prefixed_path, source_storage, **options):
         # Whether we are in symlink mode
