@@ -1,5 +1,5 @@
 import warnings
-from staticfiles.conf import settings
+from django.conf import settings
 
 def static(request):
     """

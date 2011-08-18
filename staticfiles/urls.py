@@ -5,6 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 urlpatterns = []
 
+
 def static(prefix, view='django.views.static.serve', **kwargs):
     """
     Helper function to return a URL pattern for serving files in debug mode.

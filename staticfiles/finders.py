@@ -1,4 +1,5 @@
 import os
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.datastructures import SortedDict
@@ -7,7 +8,6 @@ from django.utils.importlib import import_module
 from django.utils._os import safe_join
 
 from staticfiles import utils, storage
-from staticfiles.conf import settings
 
 _finders = SortedDict()
 

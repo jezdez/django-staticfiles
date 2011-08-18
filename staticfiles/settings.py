@@ -3,6 +3,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from staticfiles.utils import AppSettings
 
+
 class StaticfilesSettings(AppSettings):
     # The directory in which the static files are collected in
     ROOT = ''
@@ -15,15 +16,12 @@ class StaticfilesSettings(AppSettings):
     EXCLUDED_APPS = ()
     # Destination storage
     STORAGE = 'staticfiles.storage.StaticFilesStorage'
-    # List of resolver classes that know how to find static files in
-    # various locations.
-    RESOLVERS = None
     # List of finder classes that know how to find static files in
     # various locations.
     FINDERS = (
         'staticfiles.finders.FileSystemFinder',
         'staticfiles.finders.AppDirectoriesFinder',
-#       'staticfiles.finders.DefaultStorageFinder',
+    #    'staticfiles.finders.DefaultStorageFinder',
     )
 
     def configure_root(self, value):
@@ -51,9 +49,3 @@ class StaticfilesSettings(AppSettings):
                                        "settings must have different values")
         self.STATIC_URL = url
         return url
-
-    def configure_resolvers(self, value):
-        if value:
-            raise ImproperlyConfigured(
-                "The resolver API has been replaced by the finders API and "
-                "its STATICFILES_FINDERS setting. Please update your settings.")

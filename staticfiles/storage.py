@@ -3,11 +3,11 @@ import warnings
 from datetime import datetime
 
 from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.importlib import import_module
 from django.utils.functional import LazyObject
 
-from staticfiles.conf import settings
 
 
 class TimeAwareFileSystemStorage(FileSystemStorage):
