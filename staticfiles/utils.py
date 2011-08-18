@@ -6,12 +6,14 @@ import warnings
 from django.conf import settings
 
 
-def get_files_for_app(app, ignore_patterns=[]):
+def get_files_for_app(app, ignore_patterns=None):
     """
     Return a list containing the relative source paths for all files that
     should be copied for an app.
     """
     from staticfiles.storage import AppStaticStorage
+    if ignore_patterns is None:
+        ignore_patterns = []
     warnings.warn(
         "The staticfiles.utils.get_files_for_app utility function is "
         "deprecated. Use staticfiles.storage.AppStaticStorage.get_files "
