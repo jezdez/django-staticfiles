@@ -27,7 +27,7 @@ class BaseFinder(object):
         """
         raise NotImplementedError()
 
-    def list(self, ignore_patterns=[]):
+    def list(self, ignore_patterns):
         """
         Given an optional list of paths to ignore, this should return
         a three item iterable with path, prefix and a storage instance.
@@ -132,7 +132,7 @@ class AppDirectoriesFinder(BaseFinder):
         """
         List all files in all app storages.
         """
-        for storage in self.storages.values():
+        for storage in self.storages.itervalues():
             if storage.exists(''): # check if storage location exists
                 for path in utils.get_files(storage, ignore_patterns):
                     yield path, storage

@@ -14,6 +14,7 @@ from django.views import static
 
 from staticfiles import finders
 
+
 def serve(request, path, document_root=None, insecure=False, **kwargs):
     """
     Serve static files below a given point in the directory structure or
@@ -34,6 +35,8 @@ def serve(request, path, document_root=None, insecure=False, **kwargs):
     normalized_path = posixpath.normpath(urllib.unquote(path)).lstrip('/')
     absolute_path = finders.find(normalized_path)
     if not absolute_path:
+        if path.endswith('/') or path == '':
+            raise Http404("Directory indexes are not allowed here.")
         raise Http404("'%s' could not be found" % path)
     document_root, path = os.path.split(absolute_path)
     return static.serve(request, path, document_root=document_root, **kwargs)
