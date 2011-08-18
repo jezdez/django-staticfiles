@@ -352,11 +352,11 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
             """, "/static/test/file.dad0999e4f8f.txt")
         self.assertTemplateRenders("""
             {% load staticfiles %}{% static "cached/styles.css" %}
-            """, "/static/cached/styles.5653c259030b.css")
+            """, "/static/cached/styles.93b1147e8552.css")
 
     def test_template_tag_simple_content(self):
         relpath = self.cached_file_path("cached/styles.css")
-        self.assertEqual(relpath, "cached/styles.5653c259030b.css")
+        self.assertEqual(relpath, "cached/styles.93b1147e8552.css")
         relfile = storage.staticfiles_storage.open(relpath)
         try:
             content = relfile.read()
@@ -372,7 +372,7 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         try:
             content = relfile.read()
             self.assertFalse(u("/static/cached/styles.css") in content)
-            self.assertTrue(u("/static/cached/styles.5653c259030b.css") in content)
+            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
         finally:
             relfile.close()
 
@@ -383,19 +383,20 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         try:
             content = relfile.read()
             self.assertFalse(u("..//cached///styles.css") in content)
-            self.assertTrue(u("/static/cached/styles.5653c259030b.css") in content)
+            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
         finally:
             relfile.close()
 
     def test_template_tag_relative(self):
         relpath = self.cached_file_path("cached/relative.css")
-        self.assertEqual(relpath, "cached/relative.298ff891a8d4.css")
+        self.assertEqual(relpath, "cached/relative.e83068c83964.css")
         relfile = storage.staticfiles_storage.open(relpath)
         try:
             content = relfile.read()
             self.assertFalse(u("../cached/styles.css") in content)
             self.assertFalse(u('@import "styles.css"') in content)
-            self.assertTrue(u("/static/cached/styles.5653c259030b.css") in content)
+            self.assertFalse(u('background: #d3d6d8 url(img/bg.png);') in content)
+            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
         finally:
             relfile.close()
 
