@@ -1,10 +1,12 @@
 .. include:: ../README.rst
 
-Differences to Django's staticfiles contrib app
------------------------------------------------
+Differences to ``django.contrib.staticfiles``
+---------------------------------------------
 
 Features of ``django-staticfiles`` which Django's ``staticfiles`` **doesn't**
 support:
+
+* Runs on Django 1.2.X.
 
 * ``STATICFILES_EXCLUDED_APPS`` settings -- A sequence of dotted app paths
   that should be ignored when searching for static files

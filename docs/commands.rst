@@ -9,11 +9,11 @@ collectstatic
 -------------
 
 Collects the static files from all installed apps and copies them to the
-:ref:`staticfiles-storage`.
+:ref:`STATICFILES_STORAGE`.
 
 Duplicate file names are resolved in a similar way to how template resolution
-works. Files are initially searched for in :ref:`staticfiles-dirs` locations,
-followed by apps in the order specified by the INSTALLED_APPS setting.
+works. Files are initially searched for in :ref:`STATICFILES_DIRS` locations,
+followed by apps in the order specified by the ``INSTALLED_APPS`` setting.
 
 Some commonly used options are:
 
@@ -34,6 +34,20 @@ Some commonly used options are:
     Don't ignore the common private glob-style patterns ``'CVS'``, ``'.*'``
     and ``'*~'``.
 
+``-c`` or ``--clear``
+
+    .. versionadded:: 1.1
+
+    Clear the existing files before trying to copy or link the original file.
+
+``--no-post-process``
+
+    .. versionadded:: 1.1
+
+    Don't call the
+    :meth:`~staticfiles.storage.StaticFilesStorage.post_process`
+    method of the configured :ref:`staticfiles_storage` storage backend.
+
 For a full list of options, refer to the collectstatic management command help
 by running::
 
@@ -44,7 +58,7 @@ by running::
 findstatic
 ----------
 
-Searches for one or more relative paths with the enabled finders.
+Searches for one or more relative paths with the enabled finders::
 
    $ python manage.py findstatic css/base.css admin/js/core.css
    /home/special.polls.com/core/media/css/base.css
@@ -83,10 +97,11 @@ Use the ``--insecure`` option to force serving of static files with the
 ``staticfiles`` app even if the ``DEBUG`` setting is ``False``.
 
 .. warning:: By using this you acknowledge the fact that it's
-   **grossly inefficient** and probably **insecure**. This is only intended for
-   local development, should **never be used in production** and is only
-   available if the ``staticfiles`` app is in your project's ``INSTALLED_APPS``
-   setting.
+   **grossly inefficient** and probably **insecure**.
+
+   This is only intended for local development, should
+   **never be used in production** and is only available if the
+   ``staticfiles`` app is in your project's ``INSTALLED_APPS`` setting.
 
 Example usage::
 
