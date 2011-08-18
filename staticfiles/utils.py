@@ -1,21 +1,23 @@
 import os
+import sys
 import fnmatch
 import warnings
-from inspect import getmembers
 
 from django.conf import settings
 
-def get_files_for_app(app, ignore_patterns=[]):
+
+def get_files_for_app(app, ignore_patterns=None):
     """
     Return a list containing the relative source paths for all files that
     should be copied for an app.
-    
     """
     from staticfiles.storage import AppStaticStorage
+    if ignore_patterns is None:
+        ignore_patterns = []
     warnings.warn(
         "The staticfiles.utils.get_files_for_app utility function is "
         "deprecated. Use staticfiles.storage.AppStaticStorage.get_files "
-        "instead.", PendingDeprecationWarning)
+        "instead.", DeprecationWarning)
     return AppStaticStorage(app).get_files(ignore_patterns)
 
 def get_app_prefix(app):
@@ -26,33 +28,37 @@ def get_app_prefix(app):
     warnings.warn(
         "The staticfiles.utils.get_app_prefix utility function is "
         "deprecated. Use staticfiles.storage.AppStaticStorage.get_prefix "
-        "instead.", PendingDeprecationWarning)
+        "instead.", DeprecationWarning)
     return AppStaticStorage(app).get_prefix()
 
-def is_ignored(path, ignore_patterns=[]):
+def matches_patterns(path, patterns=None):
     """
     Return True or False depending on whether the ``path`` should be
     ignored (if it matches any pattern in ``ignore_patterns``).
     """
-    for pattern in ignore_patterns:
+    if patterns is None:
+        patterns = []
+    for pattern in patterns:
         if fnmatch.fnmatchcase(path, pattern):
             return True
     return False
 
-def get_files(storage, ignore_patterns=[], location=''):
+def get_files(storage, ignore_patterns=None, location=''):
     """
     Recursively walk the storage directories yielding the paths
     of all files that should be copied.
     """
+    if ignore_patterns is None:
+        ignore_patterns = []
     directories, files = storage.listdir(location)
     for fn in files:
-        if is_ignored(fn, ignore_patterns):
+        if matches_patterns(fn, ignore_patterns):
             continue
         if location:
             fn = os.path.join(location, fn)
         yield fn
     for dir in directories:
-        if is_ignored(dir, ignore_patterns):
+        if matches_patterns(dir, ignore_patterns):
             continue
         if location:
             dir = os.path.join(location, dir)
@@ -60,12 +66,73 @@ def get_files(storage, ignore_patterns=[], location=''):
             yield fn
 
 
+class AppSettingsOptions(object):
+
+    def __init__(self, meta, *args, **kwargs):
+        self.configured = False
+
+    def prefixed_name(self, name):
+        if name.startswith(self.app_label):
+            return name
+        return "%s_%s" % (self.app_label.upper(), name.upper())
+
+
+class AppSettingsMetaClass(type):
+    options_class = AppSettingsOptions
+
+    def __new__(cls, name, bases, attrs):
+        super_new = super(AppSettingsMetaClass, cls).__new__
+        parents = [b for b in bases if isinstance(b, AppSettingsMetaClass)]
+        if not parents:
+            return super_new(cls, name, bases, attrs)
+
+        try:
+            meta = attrs.pop('Meta')
+        except KeyError:
+            meta = None
+
+        attrs['_meta'] = cls.options_class(meta)
+        new_class = super_new(cls, name, bases, attrs)
+
+        if getattr(new_class._meta, 'app_label', None) is None:
+            # Figure out the app_label by looking one level up.
+            # For 'django.contrib.sites.models', this would be 'sites'.
+            model_module = sys.modules[new_class.__module__]
+            new_class._meta.app_label = model_module.__name__.split('.')[-2]
+
+        names = []
+        defaults = []
+        for name in filter(lambda name: name == name.upper(), attrs):
+            prefixed_name = new_class._meta.prefixed_name(name)
+            names.append((name, prefixed_name))
+            defaults.append((prefixed_name, attrs.pop(name)))
+
+        new_class.defaults = dict(defaults)
+        new_class.names = dict(names)
+        new_class._configure()
+
+    def _configure(cls):
+        if not cls._meta.configured:
+            # the ad-hoc settings class instance used to configure each value
+            obj = cls()
+            for name, prefixed_name in obj.names.items():
+                default_value = obj.defaults.get(prefixed_name)
+                value = getattr(settings, prefixed_name, default_value)
+                callback = getattr(obj, "configure_%s" % name.lower(), None)
+                if callable(callback):
+                    value = callback(value)
+                # Finally, set the setting in the global setting object
+                setattr(settings, prefixed_name, value)
+            cls._meta.configured = True
+
+
 class AppSettings(object):
     """
     An app setting object to be used for handling app setting defaults
     gracefully and providing a nice API for them. Say you have an app
     called ``myapp`` and want to define a few defaults, and refer to the
-    defaults easily in the apps code. Add a ``settings.py`` to your app::
+    defaults easily in the apps code. Add a ``settings.py`` to your app's
+    models.py::
 
         from path.to.utils import AppSettings
 
@@ -75,15 +142,17 @@ class AppSettings(object):
                 "two",
             )
 
-    Then initialize the setting with the correct prefix in the location of
-    of your choice, e.g. ``conf.py`` of the app module::
+            class Meta:
+                app_label = 'myapp'
 
-        settings = MyAppSettings(prefix="MYAPP")
+    The settings are initialized with the app label of where the setting is
+    located at. E.g. if your ``models.py`` is in the ``myapp`` package,
+    the prefix of the settings will be ``MYAPP``.
 
-    The ``MyAppSettings`` instance will automatically look at Django's
-    global setting to determine each of the settings and respect the
-    provided ``prefix``. E.g. adding this to your site's ``settings.py``
-    will set the ``SETTING_1`` setting accordingly::
+    The ``MyAppSettings`` class will automatically look at Django's
+    global setting to determine each of the settings. E.g. adding this to
+    your site's ``settings.py`` will set the ``SETTING_1`` app setting
+    accordingly::
 
         MYAPP_SETTING_1 = "uno"
 
@@ -91,21 +160,35 @@ class AppSettings(object):
     -----
 
     Instead of using ``from django.conf import settings`` as you would
-    usually do, you can switch to using your apps own settings module
-    to access the app settings::
+    usually do, you can **optionally** switch to using your apps own
+    settings module to access the settings::
 
-        from myapp.conf import settings
+        from myapp.models import MyAppSettings
+
+        myapp_settings = MyAppSettings()
 
         print myapp_settings.MYAPP_SETTING_1
 
-    ``AppSettings`` instances also work as pass-throughs for other
-    global settings that aren't related to the app. For example the
-    following code is perfectly valid::
+    ``AppSettings`` class automatically work as proxies for the other
+    settings, which aren't related to the app. For example the following
+    code is perfectly valid::
 
-        from myapp.conf import settings
+        from myapp.models import MyAppSettings
+
+        settings = MyAppSettings()
 
         if "myapp" in settings.INSTALLED_APPS:
             print "yay, myapp is installed!"
+
+    In case you want to set some settings ad-hoc, you can simply pass
+    the value when instanciating the ``AppSettings`` class::
+
+        from myapp.models import MyAppSettings
+
+        settings = MyAppSettings(SETTING_1='something completely different')
+
+        if 'different' in settings.MYAPP_SETTINGS_1:
+            print 'yay, I'm different!'
 
     Custom handling
     ---------------
@@ -123,9 +206,7 @@ class AppSettings(object):
             def configure_enabled(self, value):
                 return value and not self.DEBUG
 
-        custom_settings = MyCustomAppSettings("MYAPP")
-
-    The value of ``custom_settings.MYAPP_ENABLED`` will vary depending on the
+    The value of ``MYAPP_ENABLED`` will vary depending on the
     value of the global ``DEBUG`` setting.
 
     Each of the app settings can be customized by providing
@@ -134,32 +215,19 @@ class AppSettings(object):
     The method needs to return the value to be use for the setting in
     question.
     """
+    __metaclass__ = AppSettingsMetaClass
+
+    def __init__(self, **kwargs):
+        for name, value in kwargs.iteritems():
+            setattr(self, self._meta.prefixed_name(name), value)
+
     def __dir__(self):
-        return sorted(list(set(self.__dict__.keys() + dir(settings))))
+        return sorted(list(set(dir(settings))))
 
     __members__ = lambda self: self.__dir__()
 
     def __getattr__(self, name):
-        if name.startswith(self._prefix):
-            raise AttributeError("%r object has no attribute %r" %
-                                 (self.__class__.__name__, name))
         return getattr(settings, name)
 
     def __setattr__(self, name, value):
-        super(AppSettings, self).__setattr__(name, value)
-        if name in dir(settings):
-            setattr(settings, name, value)
-
-    def __init__(self, prefix):
-        super(AppSettings, self).__setattr__('_prefix', prefix)
-        for name, value in filter(self.issetting, getmembers(self.__class__)):
-            prefixed_name = "%s_%s" % (prefix.upper(), name.upper())
-            value = getattr(settings, prefixed_name, value)
-            callback = getattr(self, "configure_%s" % name.lower(), None)
-            if callable(callback):
-                value = callback(value)
-            delattr(self.__class__, name)
-            setattr(self, prefixed_name, value)
-
-    def issetting(self, (name, value)):
-        return name == name.upper()
+        setattr(settings, name, value)

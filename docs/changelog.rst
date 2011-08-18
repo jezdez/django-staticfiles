@@ -1,6 +1,42 @@
 Changelog
 =========
 
+v1.1 (2011-08-18)
+-----------------
+
+* Pulled all changes from upstream Django:
+
+  * ``static`` template tag to refer to files saved with the
+    ``STATICFILES_STORAGE`` storage backend. It’ll use the storage ``url``
+    method and therefore supports advanced features such as serving files
+    from a cloud service.
+
+  * ``CachedStaticFilesStorage`` which caches the files it saves (when
+    running the ``collectstatic`` management command) by appending the MD5
+    hash of the file's content to the filename. For example, the file
+    ``css/styles.css`` would also be saved as ``css/styles.55e7cbb9ba48.css``
+
+  * Added a ``staticfiles.storage.staticfiles_storage`` instance of the
+    configured ``STATICFILES_STORAGE``.
+
+  * ``--clear`` option for the management command which clears the
+    target directory (by default ``STATIC_ROOT``) before collecting
+
+  * Stop trying to show directory indexes in the included ``serve`` view.
+
+  * Correctly pass kwargs to the URL patterns when using the static URL
+    patterns helper.
+
+* Use sys.stdout in management command, not self.stdout which was only
+  introduced in a later Django version.
+
+* Refactored AppSettings helper class to be only a proxy for Django's
+  settings object instead of a singleton on its own.
+
+* Updated list of supported Django versions: 1.2.X, 1.3.X and 1.4.X
+
+* Updated list of supported Python versions: 2.5.X, 2.6.X and 2.7.X
+
 v1.0.1 (2011-03-28)
 -------------------
 

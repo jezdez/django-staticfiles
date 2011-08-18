@@ -26,8 +26,7 @@ try:
             handler = WSGIHandler()
             use_static_handler = options.get('use_static_handler', True)
             insecure_serving = options.get('insecure_serving', False)
-            if (settings.DEBUG and use_static_handler or
-                    (use_static_handler and insecure_serving)):
+            if use_static_handler and (settings.DEBUG or insecure_serving):
                 handler = StaticFilesHandler(handler)
             return handler
 
@@ -36,11 +35,14 @@ except ImportError:
     # No upstream staticfiles runserver found, create our own bare bones command
     class Command(BaseCommand):
         option_list = BaseCommand.option_list + (
-            make_option('--noreload', action='store_false', dest='use_reloader', default=True,
+            make_option('--noreload',
+                action='store_false', dest='use_reloader', default=True,
                 help='Tells Django to NOT use the auto-reloader.'),
-            make_option('--nostatic', action="store_false", dest='use_static_handler', default=True,
+            make_option('--nostatic',
+                action="store_false", dest='use_static_handler', default=True,
                 help='Tells Django to NOT automatically serve static files at STATIC_URL.'),
-            make_option('--insecure', action="store_true", dest='insecure_serving', default=False,
+            make_option('--insecure',
+                action="store_true", dest='insecure_serving', default=False,
                 help='Allows serving static files even if DEBUG is False.'),
         )
         help = "Starts a lightweight Web server for development and also serves static files."
@@ -53,8 +55,7 @@ except ImportError:
             handler = WSGIHandler()
             use_static_handler = options.get('use_static_handler', True)
             insecure_serving = options.get('insecure_serving', False)
-            if (settings.DEBUG and use_static_handler or
-                    (use_static_handler and insecure_serving)):
+            if use_static_handler and (settings.DEBUG or insecure_serving):
                 handler = StaticFilesHandler(handler)
             return handler
 

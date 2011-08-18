@@ -1,5 +1,5 @@
 import warnings
-from staticfiles.conf import settings
+from django.conf import settings
 
 def static(request):
     """
@@ -11,5 +11,5 @@ def static_url(request):
     warnings.warn(
         "The context processor 'staticfiles.context_processors.static_url' "
         "was renamed to 'staticfiles.context_processors.static'.",
-        PendingDeprecationWarning)
+        DeprecationWarning)
     return static(request)

@@ -1,6 +1,8 @@
 Settings
 ========
 
+.. _STATIC_ROOT:
+
 ``STATIC_ROOT``
 ---------------
 
@@ -26,7 +28,7 @@ overridden STATICFILES_STORAGE_ and are using a custom storage backend.
 
 See also STATIC_URL_.
 
-.. _static-url:
+.. _STATIC_URL:
 
 ``STATIC_URL``
 --------------
@@ -42,7 +44,7 @@ It must end in a slash if set to a non-empty value.
 
 See also STATIC_ROOT_.
 
-.. _staticfiles-dirs:
+.. _STATICFILES_DIRS:
 
 ``STATICFILES_DIRS``
 --------------------
@@ -100,7 +102,7 @@ files::
         'old.company.app',
     )
 
-.. _staticfiles-storage:
+.. _STATICFILES_STORAGE:
 
 ``STATICFILES_STORAGE``
 -----------------------
