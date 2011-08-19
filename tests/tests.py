@@ -396,7 +396,7 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
             self.assertFalse(u("../cached/styles.css") in content)
             self.assertFalse(u('@import "styles.css"') in content)
             self.assertFalse(u('url(img/empty.png)') in content)
-            self.assertFalse(u('url(/static/cached/img/empty.9c4282f9de2a.png)') in content)
+            self.assertTrue(u('url("/static/cached/img/empty.9c4282f9de2a.png")') in content)
             self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
         finally:
             relfile.close()
