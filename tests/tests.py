@@ -389,13 +389,14 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
 
     def test_template_tag_relative(self):
         relpath = self.cached_file_path("cached/relative.css")
-        self.assertEqual(relpath, "cached/relative.e83068c83964.css")
+        self.assertEqual(relpath, "cached/relative.2a985a1c9868.css")
         relfile = storage.staticfiles_storage.open(relpath)
         try:
             content = relfile.read()
             self.assertFalse(u("../cached/styles.css") in content)
             self.assertFalse(u('@import "styles.css"') in content)
-            self.assertFalse(u('background: #d3d6d8 url(img/bg.png);') in content)
+            self.assertFalse(u('url(img/empty.png)') in content)
+            self.assertFalse(u('url(/static/cached/img/empty.9c4282f9de2a.png)') in content)
             self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
         finally:
             relfile.close()

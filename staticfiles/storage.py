@@ -97,8 +97,8 @@ class CachedFilesMixin(object):
     def hashed_name(self, name, content=None):
         if content is None:
             if not self.exists(name):
-                raise ValueError("The file '%s' could not be found with %r." %
-                                 (name, self))
+                raise ValueError(
+                    "The file '%s' could not be found with %r." % (name, self))
             try:
                 content = self.open(name)
             except IOError:
@@ -142,22 +142,25 @@ class CachedFilesMixin(object):
             # Completely ignore http(s) prefixed URLs
             if url.startswith(('http', 'https')):
                 return matched
-            if url.startswith(self.base_url):
-                result = url.replace(self.base_url, '')
-                hashed_url = self.url(result, force=True)
+            name_parts = name.split('/')
+            # Using posix normpath here to remove duplicates
+            url = posixpath.normpath(url)
+            result = url_parts = url.split('/')
+            parent_level, sub_level = url.count('..'), url.count('/')
+            if url.startswith('/'):
+                sub_level -= 1
+                url_parts = url_parts[1:]
+            if parent_level:
+                start, end = parent_level + 1, parent_level
             else:
-                name_parts = name.split('/')
-                # Using posix normpath here to remove duplicates
-                result = url_parts = posixpath.normpath(url).split('/')
-                level = url.count('..')
-                if level:
-                    result = name_parts[:-level - 1] + url_parts[level:]
-                elif name_parts[:-1]:
-                    if len(url_parts) == 1:
-                        level = -1
-                    result = name_parts[:-1] + url_parts[level:]
-                joined_result = '/'.join(result)
-                hashed_url = self.url(joined_result, force=True)
+                if sub_level:
+                    if sub_level == 1:
+                        parent_level -= 1
+                    start, end = parent_level, sub_level - 1
+                else:
+                    start, end = 1, sub_level - 1
+            joined_result = '/'.join(name_parts[:-start] + url_parts[end:])
+            hashed_url = self.url(joined_result, force=True)
             # Return the hashed and normalized version to the file
             return 'url("%s")' % hashed_url
         return converter
