@@ -145,12 +145,12 @@ class CachedFilesMixin(object):
             name_parts = name.split('/')
             # Using posix normpath here to remove duplicates
             url = posixpath.normpath(url)
-            result = url_parts = url.split('/')
+            url_parts = url.split('/')
             parent_level, sub_level = url.count('..'), url.count('/')
             if url.startswith('/'):
                 sub_level -= 1
                 url_parts = url_parts[1:]
-            if parent_level:
+            if parent_level or not url.startswith('/'):
                 start, end = parent_level + 1, parent_level
             else:
                 if sub_level:
