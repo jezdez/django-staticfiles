@@ -401,6 +401,17 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         finally:
             relfile.close()
 
+    def test_template_tag_deep_relative(self):
+        relpath = self.cached_file_path("cached/css/window.css")
+        self.assertEqual(relpath, "cached/css/window.bb74aa3fa0e8.css")
+        relfile = storage.staticfiles_storage.open(relpath)
+        try:
+            content = relfile.read()
+            self.assertFalse(u('url(img/bg.png)') in content)
+            self.assertTrue(u('url("/static/cached/css/img/bg.9c4282f9de2a.png")') in content)
+        finally:
+            relfile.close()
+
     def test_template_tag_url(self):
         relpath = self.cached_file_path("cached/url.css")
         self.assertEqual(relpath, "cached/url.615e21601e4b.css")
