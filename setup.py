@@ -121,6 +121,9 @@ setup(
         "Framework :: Django",
     ],
     zip_safe=False,
+    install_requires=[
+        'django-appconf >= 0.2.2',
+    ],
     setup_requires=[
         'versiontools >= 1.6',
     ],
