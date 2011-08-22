@@ -1,6 +1,5 @@
 *.pyc
 *.pyo
-*~
 *.swp
 *.orig
 *.kpf
@@ -20,6 +19,6 @@ downloads/*
 bin/*
 develop-eggs/*.egg-link
 docs/_build
-tests/project/site_media/*
+tests/project/site_media/static/*
 .tox/
 *.egg
