@@ -109,7 +109,7 @@ setup(
     packages=find_packages(exclude=["tests.*", "tests"]),
     package_data=find_package_data("staticfiles"),
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
