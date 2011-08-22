@@ -97,11 +97,9 @@ def find_package_data(
     return out
 
 
-VERSION = __import__("staticfiles").__version__
-
 setup(
     name="django-staticfiles",
-    version=VERSION,
+    version=":versiontools:staticfiles:",
     description="A Django app that provides helpers for serving static files.",
     long_description=read("README.rst"),
     author="Jannis Leidel",
@@ -117,7 +115,13 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         "Framework :: Django",
     ],
     zip_safe=False,
+    setup_requires=[
+        'versiontools >= 1.6',
+    ],
 )
