@@ -389,26 +389,27 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
 
     def test_template_tag_relative(self):
         relpath = self.cached_file_path("cached/relative.css")
-        self.assertEqual(relpath, "cached/relative.2a985a1c9868.css")
+        self.assertEqual(relpath, "cached/relative.8dffb45d91f5.css")
         relfile = storage.staticfiles_storage.open(relpath)
         try:
             content = relfile.read()
+            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
             self.assertFalse(u("../cached/styles.css") in content)
             self.assertFalse(u('@import "styles.css"') in content)
-            self.assertFalse(u('url(img/empty.png)') in content)
-            self.assertTrue(u('url("/static/cached/img/empty.9c4282f9de2a.png")') in content)
+            self.assertFalse(u('url(img/relative.png)') in content)
+            self.assertTrue(u('url("/static/cached/img/relative.acae32e4532b.png")') in content)
             self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
         finally:
             relfile.close()
 
     def test_template_tag_deep_relative(self):
         relpath = self.cached_file_path("cached/css/window.css")
-        self.assertEqual(relpath, "cached/css/window.bb74aa3fa0e8.css")
+        self.assertEqual(relpath, "cached/css/window.9db38d5169f3.css")
         relfile = storage.staticfiles_storage.open(relpath)
         try:
             content = relfile.read()
-            self.assertFalse(u('url(img/bg.png)') in content)
-            self.assertTrue(u('url("/static/cached/css/img/bg.9c4282f9de2a.png")') in content)
+            self.assertFalse(u('url(img/window.png)') in content)
+            self.assertTrue(u('url("/static/cached/css/img/window.acae32e4532b.png")') in content)
         finally:
             relfile.close()
 
