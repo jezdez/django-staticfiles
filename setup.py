@@ -122,7 +122,7 @@ setup(
     ],
     zip_safe=False,
     install_requires=[
-        'django-appconf >= 0.2.2',
+        'django-appconf >= 0.4',
     ],
     setup_requires=[
         'versiontools >= 1.6',
