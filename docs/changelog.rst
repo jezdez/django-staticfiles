@@ -1,6 +1,21 @@
 Changelog
 =========
 
+v1.1.2 (2011-08-25)
+-------------------
+
+* Fixed a minor bug in how `django-appconf`_ was used.
+
+v1.1.1 (2011-08-22)
+-------------------
+
+* Fixed resolution of relative paths in ``CachedStaticFilesStorage``.
+
+* Started to use `django-appconf`_ and `versiontools`_.
+
+.. _`django-appconf`: http://django-appconf.rtfd.org/
+.. _`versiontools`: http://pypi.python.org/pypi/versiontools
+
 v1.1 (2011-08-18)
 -----------------
 
