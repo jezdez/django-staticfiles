@@ -109,7 +109,7 @@ setup(
     packages=find_packages(exclude=["tests.*", "tests"]),
     package_data=find_package_data("staticfiles"),
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
@@ -122,7 +122,7 @@ setup(
     ],
     zip_safe=False,
     install_requires=[
-        'django-appconf >= 0.2.2',
+        'django-appconf >= 0.4',
     ],
     setup_requires=[
         'versiontools >= 1.6',

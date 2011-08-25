@@ -32,10 +32,10 @@ class StaticFilesConf(AppConf):
         Use STATIC_ROOT since it doesn't has the default prefix
         """
         root = value or getattr(settings, 'STATIC_ROOT', None)
-        if (self.MEDIA_ROOT and root) and (self.MEDIA_ROOT == root):
+        if (settings.MEDIA_ROOT and root) and (settings.MEDIA_ROOT == root):
             raise ImproperlyConfigured("The MEDIA_ROOT and STATIC_ROOT "
                                        "settings must have different values")
-        self.STATIC_ROOT = root
+        settings.STATIC_ROOT = root
         return root
 
     def configure_url(self, value):
@@ -47,10 +47,10 @@ class StaticFilesConf(AppConf):
             raise ImproperlyConfigured("You're using the staticfiles app "
                                        "without having set the required "
                                        "STATIC_URL setting.")
-        if url == self.MEDIA_URL:
+        if url == settings.MEDIA_URL:
             raise ImproperlyConfigured("The MEDIA_URL and STATIC_URL "
                                        "settings must have different values")
-        self.STATIC_URL = url
+        settings.STATIC_URL = url
         return url
 
 
