@@ -128,7 +128,7 @@ class CachedFilesMixin(object):
             hashed_name = self.hashed_name(name)
         return super(CachedFilesMixin, self).url(hashed_name)
 
-    def url_converter(self, name):
+    def url_converter(self, name, fail_silently=False):
         """
         Returns the custom URL converter for the given file name.
         """
@@ -160,7 +160,12 @@ class CachedFilesMixin(object):
                 else:
                     start, end = 1, sub_level - 1
             joined_result = '/'.join(name_parts[:-start] + url_parts[end:])
-            hashed_url = self.url(joined_result, force=True)
+            try:
+                hashed_url = self.url(joined_result, force=True)
+            except ValueError:
+                if not fail_silently:
+                    raise
+                hashed_url = url
             # Return the hashed and normalized version to the file
             return 'url("%s")' % hashed_url
         return converter
@@ -169,6 +174,7 @@ class CachedFilesMixin(object):
         """
         Post process the given list of files (called from collectstatic).
         """
+        fail_silently = options['ignore_errors']
         processed_files = []
         # don't even dare to process the files if we're in dry run mode
         if dry_run:
@@ -195,7 +201,7 @@ class CachedFilesMixin(object):
 
                 # to apply each replacement pattern on the content
                 if name in processing_paths:
-                    converter = self.url_converter(name)
+                    converter = self.url_converter(name, fail_silently)
                     for patterns in self._patterns.values():
                         for pattern in patterns:
                             content = pattern.sub(converter, content)

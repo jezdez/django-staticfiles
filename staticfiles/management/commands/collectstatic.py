@@ -41,6 +41,9 @@ class Command(NoArgsCommand):
             dest='use_default_ignore_patterns', default=True,
             help="Don't ignore the common private glob-style patterns 'CVS', "
                 "'.*' and '*~'."),
+        make_option('--ignore-errors', action='store_true',
+            dest='ignore_errors', default=False,
+            help="Ignore post-processing errors raised on missing file."),
     )
     help = "Collect static files in a single location."
 
