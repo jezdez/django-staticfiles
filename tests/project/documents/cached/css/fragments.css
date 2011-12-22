@@ -1,0 +1,8 @@
+@font-face {
+    src: url('fonts/fanwood.eot?#iefix') format('embedded-opentype'),
+         url('fonts/fanwood.svg#webfontIyfZbseF') format('svg');
+}
+
+div {
+    behavior: url(#default#VML);
+}
