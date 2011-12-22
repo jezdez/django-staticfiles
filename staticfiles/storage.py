@@ -107,7 +107,7 @@ class CachedFilesMixin(object):
                 content = self.open(name)
             except IOError:
                 # Handle directory fragments
-                return fragment
+                return name
         path, filename = os.path.split(name)
         root, ext = os.path.splitext(filename)
         # Get the MD5 hash of the file
@@ -133,8 +133,6 @@ class CachedFilesMixin(object):
         if self.base_url is None:
             raise ValueError("This file is not accessible via a URL.")
         uri = urllib.quote(smart_str(hashed_name).replace("\\", "/"), safe="/#?~!*()'")
-        if uri.startswith(("#", "?")):
-            return uri
         return urlparse.urljoin(self.base_url, uri)
 
     def url_converter(self, name):
@@ -150,6 +148,8 @@ class CachedFilesMixin(object):
             matched, url = matchobj.groups()
             # Completely ignore http(s) prefixed URLs
             if url.startswith(('http', 'https')):
+                return matched
+            if url.startswith(('#', 'data:')):
                 return matched
             name_parts = name.split('/')
             # Using posix normpath here to remove duplicates

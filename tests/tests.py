@@ -424,7 +424,7 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
 
     def test_template_tag_fragments(self):
         relpath = self.cached_file_path("cached/css/fragments.css")
-        self.assertEqual(relpath, "cached/css/fragments.bfec1a292fe7.css")
+        self.assertEqual(relpath, "cached/css/fragments.3e42e913f137.css")
         relfile = storage.staticfiles_storage.open(relpath)
         try:
             content = relfile.read()
