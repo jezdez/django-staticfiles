@@ -149,6 +149,7 @@ class CachedFilesMixin(object):
             # Completely ignore http(s) prefixed URLs
             if url.startswith(('http', 'https')):
                 return matched
+            # Completely ignore fragments and data-uri URLs
             if url.startswith(('#', 'data:')):
                 return matched
             name_parts = name.split('/')
