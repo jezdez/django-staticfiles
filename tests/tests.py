@@ -422,6 +422,18 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         finally:
             relfile.close()
 
+    def test_template_tag_fragments(self):
+        relpath = self.cached_file_path("cached/css/fragments.css")
+        self.assertEqual(relpath, "cached/css/fragments.3e42e913f137.css")
+        relfile = storage.staticfiles_storage.open(relpath)
+        try:
+            content = relfile.read()
+            self.assertTrue(u('url("/static/cached/css/fonts/fanwood.eff4d08c5546.svg#webfontIyfZbseF")') in content)
+            self.assertTrue(u('url("#default#VML")') in content)
+            self.assertTrue(u('url("/static/cached/css/fonts/fanwood.6271e2a05e0d.eot#iefix")') in content)
+        finally:
+            relfile.close()
+
 
 if sys.platform != 'win32':
     class TestCollectionLinks(CollectionTestCase, TestDefaults):

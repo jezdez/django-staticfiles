@@ -2,6 +2,8 @@ from __future__ import with_statement
 import os
 import posixpath
 import re
+import urllib
+import urlparse
 import warnings
 from datetime import datetime
 
@@ -12,7 +14,7 @@ from django.core.cache import (get_cache, InvalidCacheBackendError,
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage, get_storage_class
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_unicode, smart_str
 from django.utils.datastructures import SortedDict
 from django.utils.functional import LazyObject
 from django.utils.importlib import import_module
@@ -95,6 +97,8 @@ class CachedFilesMixin(object):
                 self._patterns.setdefault(extension, []).append(compiled)
 
     def hashed_name(self, name, content=None):
+        fragments = re.split(r'([?#].*)$', name)
+        name, fragment = fragments[0], ''.join(fragments[1:])
         if content is None:
             if not self.exists(name):
                 raise ValueError(
@@ -102,7 +106,7 @@ class CachedFilesMixin(object):
             try:
                 content = self.open(name)
             except IOError:
-                # Handle directory paths
+                # Handle directory fragments
                 return name
         path, filename = os.path.split(name)
         root, ext = os.path.splitext(filename)
@@ -111,7 +115,7 @@ class CachedFilesMixin(object):
         for chunk in content.chunks():
             md5.update(chunk)
         md5sum = md5.hexdigest()[:12]
-        return os.path.join(path, u"%s.%s%s" % (root, md5sum, ext))
+        return os.path.join(path, u"%s.%s%s%s" % (root, md5sum, ext, fragment))
 
     def cache_key(self, name):
         return u'staticfiles:cache:%s' % name
@@ -126,7 +130,10 @@ class CachedFilesMixin(object):
         hashed_name = self.cache.get(cache_key)
         if hashed_name is None:
             hashed_name = self.hashed_name(name)
-        return super(CachedFilesMixin, self).url(hashed_name)
+        if self.base_url is None:
+            raise ValueError("This file is not accessible via a URL.")
+        uri = urllib.quote(smart_str(hashed_name).replace("\\", "/"), safe="/#?~!*()'")
+        return urlparse.urljoin(self.base_url, uri)
 
     def url_converter(self, name):
         """
@@ -141,6 +148,9 @@ class CachedFilesMixin(object):
             matched, url = matchobj.groups()
             # Completely ignore http(s) prefixed URLs
             if url.startswith(('http', 'https')):
+                return matched
+            # Completely ignore fragments and data-uri URLs
+            if url.startswith(('#', 'data:')):
                 return matched
             name_parts = name.split('/')
             # Using posix normpath here to remove duplicates
