@@ -15,7 +15,6 @@ except ImportError:
     from StringIO import StringIO
 
 from django import VERSION
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
 from django.core.management import call_command
@@ -29,6 +28,7 @@ except ImportError:
     empty = None
 
 from staticfiles import finders, storage
+from staticfiles.conf import settings
 
 
 # This is the most annoying thing ever, but cStringIO and StringIO don't

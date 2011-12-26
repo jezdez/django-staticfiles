@@ -106,7 +106,7 @@ setup(
     author_email="jannis@leidel.info",
     license="BSD",
     url="http://django-staticfiles.readthedocs.org/",
-    packages=find_packages(exclude=["tests.*", "tests"]),
+    packages=find_packages(),
     package_data=find_package_data("staticfiles"),
     classifiers=[
         "Development Status :: 4 - Beta",

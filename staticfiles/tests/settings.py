@@ -1,5 +1,4 @@
 import os
-import sys
 
 SITE_ID = 1
 
@@ -41,7 +40,7 @@ STATICFILES_FINDERS = (
     'staticfiles.finders.DefaultStorageFinder',
 )
 
-ROOT_URLCONF = 'tests.urls'
+ROOT_URLCONF = 'staticfiles.tests.urls.default'
 
 TEMPLATE_DIRS = (
     os.path.join(TEST_ROOT, 'project', 'templates'),
@@ -53,9 +52,16 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
     'staticfiles',
-    'tests',
-    'tests.apps.test',
-    'tests.apps.no_label',
-    'tests.apps.skip',
+    'staticfiles.tests',
+    'staticfiles.tests.apps.test',
+    'staticfiles.tests.apps.no_label',
+    'staticfiles.tests.apps.skip',
+    'django_jenkins',
 ]
 
+JENKINS_TASKS = (
+    'django_jenkins.tasks.run_pyflakes',
+    'django_jenkins.tasks.run_pep8',
+    'django_jenkins.tasks.with_coverage',
+    'django_jenkins.tasks.django_tests',
+)
