@@ -31,7 +31,7 @@ STATICFILES_DIRS = (
 )
 
 STATICFILES_EXCLUDED_APPS = (
-    'tests.apps.skip',
+    'staticfiles.tests.apps.skip',
 )
 
 STATICFILES_FINDERS = (
