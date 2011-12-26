@@ -1,5 +1,4 @@
 import os
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.datastructures import SortedDict
@@ -8,6 +7,7 @@ from django.utils.importlib import import_module
 from django.utils._os import safe_join
 
 from staticfiles import utils, storage
+from staticfiles.conf import settings
 
 _finders = SortedDict()
 
@@ -61,7 +61,8 @@ class FileSystemFinder(BaseFinder):
             if (prefix, root) not in self.locations:
                 self.locations.append((prefix, root))
         for prefix, root in self.locations:
-            filesystem_storage = storage.TimeAwareFileSystemStorage(location=root)
+            filesystem_storage = storage.TimeAwareFileSystemStorage(
+                location=root)
             filesystem_storage.prefix = prefix
             self.storages[root] = filesystem_storage
         super(FileSystemFinder, self).__init__(*args, **kwargs)
@@ -133,7 +134,7 @@ class AppDirectoriesFinder(BaseFinder):
         List all files in all app storages.
         """
         for storage in self.storages.itervalues():
-            if storage.exists(''): # check if storage location exists
+            if storage.exists(''):  # check if storage location exists
                 for path in utils.get_files(storage, ignore_patterns):
                     yield path, storage
 
@@ -218,6 +219,7 @@ class BaseStorageFinder(BaseFinder):
         for path in utils.get_files(self.storage, ignore_patterns):
             yield path, self.storage
 
+
 class DefaultStorageFinder(BaseStorageFinder):
     """
     A static files finder that uses the default storage backend.
@@ -245,12 +247,14 @@ def find(path, all=False):
     # No match.
     return all and [] or None
 
+
 def get_finders():
     """
     Function to yield finder instances.
     """
     for finder_path in settings.STATICFILES_FINDERS:
         yield get_finder(finder_path)
+
 
 def _get_finder(import_path):
     """

@@ -1,10 +1,11 @@
 import urllib
 from urlparse import urlparse
 
-from django.conf import settings
 from django.core.handlers.wsgi import WSGIHandler
 
+from staticfiles.conf import settings
 from staticfiles.views import serve
+
 
 class StaticFilesHandler(WSGIHandler):
     """
@@ -63,4 +64,5 @@ class StaticFilesHandler(WSGIHandler):
     def __call__(self, environ, start_response):
         if not self._should_handle(environ['PATH_INFO']):
             return self.application(environ, start_response)
-        return super(StaticFilesHandler, self).__call__(environ, start_response)
+        return super(StaticFilesHandler, self).__call__(environ,
+                                                        start_response)
