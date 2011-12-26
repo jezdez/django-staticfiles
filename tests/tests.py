@@ -126,7 +126,7 @@ class BaseCollectionTestCase(BaseStaticFilesTestCase):
     def setUp(self):
         super(BaseCollectionTestCase, self).setUp()
         self.old_root = settings.STATIC_ROOT
-        settings.STATIC_ROOT = tempfile.mkdtemp()
+        settings.STATIC_ROOT = tempfile.mkdtemp(prefix='staticfiles_')
         self.run_collectstatic()
 
     def tearDown(self):
@@ -419,6 +419,18 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         relfile = storage.staticfiles_storage.open(relpath)
         try:
             self.assertTrue("https://" in relfile.read())
+        finally:
+            relfile.close()
+
+    def test_template_tag_fragments(self):
+        relpath = self.cached_file_path("cached/css/fragments.css")
+        self.assertEqual(relpath, "cached/css/fragments.3127296ac186.css")
+        relfile = storage.staticfiles_storage.open(relpath)
+        try:
+            content = relfile.read()
+            self.assertTrue(u('/static/cached/css/fonts/font.a4b0478549d0.eot?#iefix') in content, content)
+            self.assertTrue(u('/static/cached/css/fonts/font.b8d603e42714.svg#webfontIyfZbseF') in content, content)
+            self.assertTrue(u('#default#VML') in content)
         finally:
             relfile.close()
 
