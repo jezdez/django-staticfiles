@@ -107,7 +107,7 @@ setup(
     license="BSD",
     url="http://django-staticfiles.readthedocs.org/",
     packages=find_packages(),
-    package_data=find_package_data("staticfiles"),
+    package_data=find_package_data(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Web Environment",
