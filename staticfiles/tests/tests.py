@@ -159,8 +159,6 @@ class TestDefaults(object):
         """
         self.assertFileContains('test.txt', 'Can we find')
         self.assertFileContains(os.path.join('prefix', 'test.txt'), 'Prefix')
-        self.assertFileNotFound('unwanted.txt')
-        self.assertFileNotFound(os.path.join('prefix', 'unwanted.txt'))
 
     def test_staticfiles_dirs_subdir(self):
         """
@@ -253,6 +251,13 @@ class TestCollection(CollectionTestCase, TestDefaults):
         self.assertFileNotFound('test/.hidden')
         self.assertFileNotFound('test/backup~')
         self.assertFileNotFound('test/CVS')
+
+    def test_staticfiles_dirs_ignore_patterns(self):
+        """
+        Test that STATICFILES_DIRS files matching ignore patterns are ignored.
+        """
+        self.assertFileNotFound('unwanted.txt')
+        self.assertFileNotFound(os.path.join('prefix', 'unwanted.txt'))
 
 
 class TestCollectionClear(CollectionTestCase):
