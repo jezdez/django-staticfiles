@@ -28,6 +28,8 @@ STATICFILES_STORAGE = 'staticfiles.storage.StaticFilesStorage'
 STATICFILES_DIRS = (
     os.path.join(TEST_ROOT, 'project', 'documents'),
     ('prefix', os.path.join(TEST_ROOT, 'project', 'prefixed')),
+    (os.path.join(TEST_ROOT, 'project', 'ignored'), ('*.txt',)),
+    ('prefix', os.path.join(TEST_ROOT, 'project', 'ignored'), ('*.txt',)),
 )
 
 STATICFILES_EXCLUDED_APPS = (

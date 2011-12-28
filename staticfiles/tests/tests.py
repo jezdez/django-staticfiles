@@ -159,6 +159,8 @@ class TestDefaults(object):
         """
         self.assertFileContains('test.txt', 'Can we find')
         self.assertFileContains(os.path.join('prefix', 'test.txt'), 'Prefix')
+        self.assertFileNotFound('unwanted.txt')
+        self.assertFileNotFound(os.path.join('prefix', 'unwanted.txt'))
 
     def test_staticfiles_dirs_subdir(self):
         """
