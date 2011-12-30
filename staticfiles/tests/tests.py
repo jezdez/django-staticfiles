@@ -103,11 +103,15 @@ class BaseStaticFilesTestCase(object):
             template = loader.get_template_from_string(template)
         return template.render(Context(kwargs)).strip()
 
-    def assertTemplateRenders(self, template, result, **kwargs):
+    def static_template_snippet(self, path):
+        return "{%% load staticfiles %%}{%% static '%s' %%}" % path
+
+    def assertStaticRenders(self, path, result, **kwargs):
+        template = self.static_template_snippet(path)
         self.assertEqual(self.render_template(template, **kwargs), result)
 
-    def assertTemplateRaises(self, exc, template, result, **kwargs):
-        self.assertRaises(exc, self.assertTemplateRenders, template, result, **kwargs)
+    def assertStaticRaises(self, exc, path, result, **kwargs):
+        self.assertRaises(exc, self.assertStaticRenders, path, result, **kwargs)
 
 
 class StaticFilesTestCase(BaseStaticFilesTestCase, TestCase):
@@ -344,15 +348,13 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         """
         Test the CachedStaticFilesStorage backend.
         """
-        self.assertTemplateRaises(ValueError, """
-            {% load staticfiles %}{% static "does/not/exist.png" %}
-            """, "/static/does/not/exist.png")
-        self.assertTemplateRenders("""
-            {% load staticfiles %}{% static "test/file.txt" %}
-            """, "/static/test/file.dad0999e4f8f.txt")
-        self.assertTemplateRenders("""
-            {% load staticfiles %}{% static "cached/styles.css" %}
-            """, "/static/cached/styles.93b1147e8552.css")
+        self.assertStaticRaises(ValueError,
+                                "does/not/exist.png",
+                                "/static/does/not/exist.png")
+        self.assertStaticRenders("test/file.txt",
+                                 "/static/test/file.dad0999e4f8f.txt")
+        self.assertStaticRenders("cached/styles.css",
+                                 "/static/cached/styles.93b1147e8552.css")
 
     def test_template_tag_simple_content(self):
         relpath = self.cached_file_path("cached/styles.css")
@@ -604,9 +606,6 @@ class TestMiscFinder(TestCase):
 class TestTemplateTag(StaticFilesTestCase):
 
     def test_template_tag(self):
-        self.assertTemplateRenders("""
-            {% load staticfiles %}{% static "does/not/exist.png" %}
-            """, "/static/does/not/exist.png")
-        self.assertTemplateRenders("""
-            {% load staticfiles %}{% static "testfile.txt" %}
-            """, "/static/testfile.txt")
+        self.assertStaticRenders("does/not/exist.png",
+                                   "/static/does/not/exist.png")
+        self.assertStaticRenders("testfile.txt", "/static/testfile.txt")
