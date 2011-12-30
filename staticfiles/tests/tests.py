@@ -15,7 +15,7 @@ from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.template import loader, Context
 from django.test import TestCase
-from django.utils.encoding import smart_unicode, smart_str, force_unicode
+from django.utils.encoding import smart_unicode
 
 try:
     from django.utils.functional import empty
@@ -348,6 +348,35 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
             self.assertNotIn("cached/other.css", content)
             self.assertIn("/static/cached/other.d41d8cd98f00.css", content)
 
+    def test_path_with_querystring(self):
+        relpath = self.cached_file_path("cached/styles.css?spam=eggs")
+        self.assertEqual(relpath,
+                         "cached/styles.93b1147e8552.css?spam=eggs")
+        with storage.staticfiles_storage.open(
+                "cached/styles.93b1147e8552.css") as relfile:
+            content = relfile.read()
+            self.assertNotIn("cached/other.css", content)
+            self.assertIn("/static/cached/other.d41d8cd98f00.css", content)
+
+    def test_path_with_fragment(self):
+        relpath = self.cached_file_path("cached/styles.css#eggs")
+        self.assertEqual(relpath, "cached/styles.93b1147e8552.css#eggs")
+        with storage.staticfiles_storage.open(
+                "cached/styles.93b1147e8552.css") as relfile:
+            content = relfile.read()
+            self.assertNotIn("cached/other.css", content)
+            self.assertIn("/static/cached/other.d41d8cd98f00.css", content)
+
+    def test_path_with_querystring_and_fragment(self):
+        relpath = self.cached_file_path("cached/css/fragments.css")
+        self.assertEqual(relpath, "cached/css/fragments.75433540b096.css")
+        with storage.staticfiles_storage.open(relpath) as relfile:
+            content = relfile.read()
+            self.assertIn('/static/cached/css/fonts/font.a4b0478549d0.eot?#iefix', content)
+            self.assertIn('/static/cached/css/fonts/font.b8d603e42714.svg#webfontIyfZbseF', content)
+            self.assertIn('data:font/woff;charset=utf-8;base64,d09GRgABAAAAADJoAA0AAAAAR2QAAQAAAAAAAAAAAAA', content)
+            self.assertIn('#default#VML', content)
+
     def test_template_tag_absolute(self):
         relpath = self.cached_file_path("cached/absolute.css")
         self.assertEqual(relpath, "cached/absolute.cc80cb5e2eb1.css")
@@ -387,18 +416,6 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
     def test_template_tag_url(self):
         relpath = self.cached_file_path("cached/url.css")
         self.assertEqual(relpath, "cached/url.615e21601e4b.css")
-
-    def test_template_tag_fragments(self):
-        relpath = self.cached_file_path("cached/css/fragments.css")
-        self.assertEqual(relpath, "cached/css/fragments.3127296ac186.css")
-        relfile = storage.staticfiles_storage.open(relpath)
-        try:
-            content = relfile.read()
-            self.assertTrue(u('/static/cached/css/fonts/font.a4b0478549d0.eot?#iefix') in content, content)
-            self.assertTrue(u('/static/cached/css/fonts/font.b8d603e42714.svg#webfontIyfZbseF') in content, content)
-            self.assertTrue(u('#default#VML') in content)
-        finally:
-            relfile.close()
         with storage.staticfiles_storage.open(relpath) as relfile:
             self.assertIn("https://", relfile.read())
 
