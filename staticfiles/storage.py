@@ -21,6 +21,23 @@ from django.utils.hashcompat import md5_constructor
 from staticfiles.utils import matches_patterns
 
 
+def setattr_ifmissing(clss, name, func):
+    for cls in clss:
+        if not hasattr(cls, name):
+            setattr(cls, name, func)
+
+
+def __enter__(self):
+    return self
+
+
+def __exit__(self, exc_type, exc_value, tb):
+    self.close()
+
+# forcing the storage backend file to be a context manager
+setattr_ifmissing([File, ContentFile], '__enter__', __enter__)
+setattr_ifmissing([File, ContentFile], '__exit__', __exit__)
+
 fragments_re = re.compile(r'([?#].*)$')
 
 
@@ -201,8 +218,7 @@ class CachedFilesMixin(object):
             # first get a hashed name for the given file
             hashed_name = self.hashed_name(name)
 
-            original_file = self.open(name)
-            try:
+            with self.open(name) as original_file:
                 # then get the original's file content
                 content = original_file.read()
 
@@ -224,8 +240,6 @@ class CachedFilesMixin(object):
 
                 # and then set the cache accordingly
                 self.cache.set(self.cache_key(name), hashed_name)
-            finally:
-                original_file.close()
 
         return processed_files
 
