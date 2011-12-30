@@ -7,14 +7,9 @@ import posixpath
 import shutil
 import sys
 import tempfile
+import unittest2
 from StringIO import StringIO
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
-from django import VERSION
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import default_storage
 from django.core.management import call_command
@@ -29,18 +24,6 @@ except ImportError:
 
 from staticfiles import finders, storage
 from staticfiles.conf import settings
-
-
-# This is the most annoying thing ever, but cStringIO and StringIO don't
-# return the same for Unicode strings, see http://bugs.python.org/issue2387
-# and http://tuxpool.blogspot.com/2010/01/python-cstringio-vs-stringio.html
-# For some reason this only shows up in Django < 1.3 WTF!
-is_fucking_old = VERSION[:2] < (1, 3)
-def u(string):
-    if is_fucking_old:
-        return StringIO(unicode(string)).read()
-    return string
-
 
 
 TEST_ROOT = os.path.normcase(os.path.dirname(__file__))
@@ -92,7 +75,7 @@ class BaseStaticFilesTestCase(object):
         settings.DEBUG = self.old_debug
 
     def assertFileContains(self, filepath, text):
-        self.assertTrue(text in self._get_file(smart_unicode(filepath)),
+        self.assertIn(text, self._get_file(smart_unicode(filepath)),
                         u"'%s' not in '%s'" % (text, filepath))
 
     def assertFileNotFound(self, filepath):
@@ -114,11 +97,11 @@ class BaseStaticFilesTestCase(object):
         self.assertRaises(exc, self.assertStaticRenders, path, result, **kwargs)
 
 
-class StaticFilesTestCase(BaseStaticFilesTestCase, TestCase):
+class StaticFilesTestCase(BaseStaticFilesTestCase, TestCase, unittest2.TestCase):
     pass
 
 
-class BaseCollectionTestCase(BaseStaticFilesTestCase):
+class BaseCollectionTestCase(BaseStaticFilesTestCase, unittest2.TestCase):
     """
     Tests shared by all file finding features (collectstatic,
     findstatic, and static serve view).
@@ -148,6 +131,7 @@ class BaseCollectionTestCase(BaseStaticFilesTestCase):
         filepath = os.path.join(settings.STATIC_ROOT, filepath)
         with codecs.open(filepath, "r", "utf-8") as f:
             return f.read()
+
 
 class CollectionTestCase(BaseCollectionTestCase, StaticFilesTestCase):
     pass
@@ -359,70 +343,50 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
     def test_template_tag_simple_content(self):
         relpath = self.cached_file_path("cached/styles.css")
         self.assertEqual(relpath, "cached/styles.93b1147e8552.css")
-        relfile = storage.staticfiles_storage.open(relpath)
-        try:
+        with storage.staticfiles_storage.open(relpath) as relfile:
             content = relfile.read()
-            self.assertFalse(u("cached/other.css") in content, content)
-            self.assertTrue(u("/static/cached/other.d41d8cd98f00.css") in content)
-        finally:
-            relfile.close()
+            self.assertNotIn("cached/other.css", content)
+            self.assertIn("/static/cached/other.d41d8cd98f00.css", content)
 
     def test_template_tag_absolute(self):
         relpath = self.cached_file_path("cached/absolute.css")
         self.assertEqual(relpath, "cached/absolute.cc80cb5e2eb1.css")
-        relfile = storage.staticfiles_storage.open(relpath)
-        try:
+        with storage.staticfiles_storage.open(relpath) as relfile:
             content = relfile.read()
-            self.assertFalse(u("/static/cached/styles.css") in content)
-            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
-        finally:
-            relfile.close()
+            self.assertNotIn("/static/cached/styles.css", content)
+            self.assertIn("/static/cached/styles.93b1147e8552.css", content)
 
     def test_template_tag_denorm(self):
         relpath = self.cached_file_path("cached/denorm.css")
         self.assertEqual(relpath, "cached/denorm.363de96e9b4b.css")
-        relfile = storage.staticfiles_storage.open(relpath)
-        try:
+        with storage.staticfiles_storage.open(relpath) as relfile:
             content = relfile.read()
-            self.assertFalse(u("..//cached///styles.css") in content)
-            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
-        finally:
-            relfile.close()
+            self.assertNotIn("..//cached///styles.css", content)
+            self.assertIn("/static/cached/styles.93b1147e8552.css", content)
 
     def test_template_tag_relative(self):
         relpath = self.cached_file_path("cached/relative.css")
         self.assertEqual(relpath, "cached/relative.8dffb45d91f5.css")
-        relfile = storage.staticfiles_storage.open(relpath)
-        try:
+        with storage.staticfiles_storage.open(relpath) as relfile:
             content = relfile.read()
-            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
-            self.assertFalse(u("../cached/styles.css") in content)
-            self.assertFalse(u('@import "styles.css"') in content)
-            self.assertFalse(u('url(img/relative.png)') in content)
-            self.assertTrue(u('url("/static/cached/img/relative.acae32e4532b.png")') in content)
-            self.assertTrue(u("/static/cached/styles.93b1147e8552.css") in content)
-        finally:
-            relfile.close()
+            self.assertIn("/static/cached/styles.93b1147e8552.css", content)
+            self.assertNotIn("../cached/styles.css", content)
+            self.assertNotIn('@import "styles.css"', content)
+            self.assertNotIn('url(img/relative.png)', content)
+            self.assertIn('url("/static/cached/img/relative.acae32e4532b.png")', content)
+            self.assertIn("/static/cached/styles.93b1147e8552.css", content)
 
     def test_template_tag_deep_relative(self):
         relpath = self.cached_file_path("cached/css/window.css")
         self.assertEqual(relpath, "cached/css/window.9db38d5169f3.css")
-        relfile = storage.staticfiles_storage.open(relpath)
-        try:
+        with storage.staticfiles_storage.open(relpath) as relfile:
             content = relfile.read()
-            self.assertFalse(u('url(img/window.png)') in content)
-            self.assertTrue(u('url("/static/cached/css/img/window.acae32e4532b.png")') in content)
-        finally:
-            relfile.close()
+            self.assertNotIn('url(img/window.png)', content)
+            self.assertIn('url("/static/cached/css/img/window.acae32e4532b.png")', content)
 
     def test_template_tag_url(self):
         relpath = self.cached_file_path("cached/url.css")
         self.assertEqual(relpath, "cached/url.615e21601e4b.css")
-        relfile = storage.staticfiles_storage.open(relpath)
-        try:
-            self.assertTrue("https://" in relfile.read())
-        finally:
-            relfile.close()
 
     def test_template_tag_fragments(self):
         relpath = self.cached_file_path("cached/css/fragments.css")
@@ -435,9 +399,12 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
             self.assertTrue(u('#default#VML') in content)
         finally:
             relfile.close()
+        with storage.staticfiles_storage.open(relpath) as relfile:
+            self.assertIn("https://", relfile.read())
 
 
 if sys.platform != 'win32':
+
     class TestCollectionLinks(CollectionTestCase, TestDefaults):
         """
         Test ``--link`` option for ``collectstatic`` management command.
@@ -495,6 +462,7 @@ class TestServeStaticWithDefaultURL(TestServeStatic, TestDefaults):
     Test static asset serving view with manually configured URLconf.
     """
     pass
+
 
 class TestServeStaticWithURLHelper(TestServeStatic, TestDefaults):
     """
