@@ -89,25 +89,6 @@ This would allow you to refer to the local file
 
     <a href="{{ STATIC_URL }}downloads/polls_20101022.tar.gz">
 
-Ignore Patterns (optional)
-""""""""""""""""""""""""""
-
-If you would like to ignore certain file patterns from being picked up by the
-:ref:`collectstatic` management command, you can **OPTIONALLY** privide
-ignore patterns as ``(path, (pattern1, pattern2, etc...))`` tuples, e.g.::
-
-    STATICFILES_DIRS = (
-        # ...
-        ("/opt/webfiles/stats", ("tests", "*.py",)),
-    )
-
-Example with prefix::
-
-    STATICFILES_DIRS = (
-        # ...
-        ("downloads", "/opt/webfiles/stats", ("tests",)),
-    )
-
 ``STATICFILES_EXCLUDED_APPS``
 -----------------------------
 

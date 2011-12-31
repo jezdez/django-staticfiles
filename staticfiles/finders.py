@@ -43,8 +43,6 @@ class FileSystemFinder(BaseFinder):
     def __init__(self, apps=None, *args, **kwargs):
         # List of locations with static files
         self.locations = []
-        # Dict of ignore patterns per location
-        self.ignore_patterns = {}
         # Maps dir paths to an appropriate storage instance
         self.storages = SortedDict()
         if not isinstance(settings.STATICFILES_DIRS, (list, tuple)):
@@ -53,28 +51,15 @@ class FileSystemFinder(BaseFinder):
                 "perhaps you forgot a trailing comma?")
         for root in settings.STATICFILES_DIRS:
             if isinstance(root, (list, tuple)):
-                if len(root) == 3:
-                    # Handle optional (prefix, root, ignore_patterns) format
-                    prefix, root, ignore_patterns = root
-                elif isinstance(root[1], (list, tuple)):
-                    # Handle optional (root, ignore_patterns) format
-                    root, ignore_patterns = root
-                    prefix = ''
-                else:
-                    # Handle optional (prefix, root) format
-                    prefix, root = root
-                    ignore_patterns = ()
+                prefix, root = root
             else:
                 prefix = ''
-                ignore_patterns = ()
             if os.path.abspath(settings.STATIC_ROOT) == os.path.abspath(root):
                 raise ImproperlyConfigured(
                     "The STATICFILES_DIRS setting should "
                     "not contain the STATIC_ROOT setting")
             if (prefix, root) not in self.locations:
                 self.locations.append((prefix, root))
-            self.ignore_patterns.setdefault(
-                (prefix, root), set()).update(ignore_patterns)
         for prefix, root in self.locations:
             filesystem_storage = storage.TimeAwareFileSystemStorage(
                 location=root)
@@ -116,9 +101,7 @@ class FileSystemFinder(BaseFinder):
         """
         for prefix, root in self.locations:
             storage = self.storages[root]
-            ignore = list(self.ignore_patterns[(prefix, root)].union(
-                ignore_patterns))
-            for path in utils.get_files(storage, ignore):
+            for path in utils.get_files(storage, ignore_patterns):
                 yield path, storage
 
 

@@ -252,13 +252,6 @@ class TestCollection(CollectionTestCase, TestDefaults):
         self.assertFileNotFound('test/backup~')
         self.assertFileNotFound('test/CVS')
 
-    def test_staticfiles_dirs_ignore_patterns(self):
-        """
-        Test that STATICFILES_DIRS files matching ignore patterns are ignored.
-        """
-        self.assertFileNotFound('unwanted.txt')
-        self.assertFileNotFound(os.path.join('prefix', 'unwanted.txt'))
-
 
 class TestCollectionClear(CollectionTestCase):
     """
