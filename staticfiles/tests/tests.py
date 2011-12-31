@@ -73,11 +73,16 @@ class BaseStaticFilesTestCase(object):
         # package data handling.
         self._hidden_filepath = os.path.join(testfiles_path, '.hidden')
         with codecs.open(self._hidden_filepath, 'w', 'utf-8') as f:
-            f.write("This file should be ignored.\n")
+            f.write("should be ignored")
+        self._backup_filepath = os.path.join(
+            TEST_ROOT, 'project', 'documents', 'test', 'backup~')
+        with codecs.open(self._backup_filepath, 'w', 'utf-8') as f:
+            f.write("should be ignored")
 
     def tearDown(self):
         os.unlink(self._nonascii_filepath)
         os.unlink(self._hidden_filepath)
+        os.unlink(self._backup_filepath)
         settings.DEBUG = self.old_debug
 
     def assertFileContains(self, filepath, text):
