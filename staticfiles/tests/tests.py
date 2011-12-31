@@ -134,8 +134,10 @@ class BaseCollectionTestCase(BaseStaticFilesTestCase, unittest2.TestCase):
         super(BaseCollectionTestCase, self).tearDown()
 
     def run_collectstatic(self, **kwargs):
+        ignore_patterns = ['*.ignoreme', os.path.join(
+            TEST_ROOT, 'apps', 'test', 'static', 'test', '*.ignoreme2')]
         call_command('collectstatic', interactive=False, verbosity='0',
-                     ignore_patterns=['*.ignoreme'], **kwargs)
+                     ignore_patterns=ignore_patterns, **kwargs)
 
     def _get_file(self, filepath):
         assert filepath, 'filepath is empty.'
@@ -242,6 +244,7 @@ class TestCollection(CollectionTestCase, TestDefaults):
         Test that -i patterns are ignored.
         """
         self.assertFileNotFound('test/test.ignoreme')
+        self.assertFileNotFound('test/test.ignoreme2')
 
     def test_common_ignore_patterns(self):
         """
@@ -250,6 +253,14 @@ class TestCollection(CollectionTestCase, TestDefaults):
         self.assertFileNotFound('test/.hidden')
         self.assertFileNotFound('test/backup~')
         self.assertFileNotFound('test/CVS')
+
+    def test_staticfiles_ignore_patterns(self):
+        """
+        Test that patterns in STATICFILES_IGNORE_PATTERNS are ignored.
+        """
+        self.assertFileNotFound('test/test.ignoreme3')
+        self.assertFileNotFound('test/test.ignoreme4')
+        self.assertFileNotFound('ignored/test.txt')
 
 
 class TestCollectionClear(CollectionTestCase):
