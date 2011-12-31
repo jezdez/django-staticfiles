@@ -31,8 +31,9 @@ STATICFILES_DIRS = (
 )
 
 STATICFILES_IGNORE_PATTERNS = (
-    '*.ignoreme3',
-    os.path.join(TEST_ROOT, 'project', 'documents', 'test', '*.ignoreme4'),
+    '*.ignoreme4',
+    os.path.join('test', '*.ignoreme5'),
+    os.path.join(TEST_ROOT, 'project', 'documents', 'test', '*.ignoreme6'),
     os.path.join(TEST_ROOT, 'project', 'documents', 'ignored'),
 )
 

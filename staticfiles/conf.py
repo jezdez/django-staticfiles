@@ -15,6 +15,8 @@ class StaticFilesConf(AppConf):
     # A tuple of two-tuples with a name and the path of additional directories
     # which hold static files and should be taken into account
     DIRS = ()
+    # Patterns that should be ignored by collectstatic
+    IGNORE_PATTERNS = ()
     # Apps that shouldn't be taken into account when collecting app media
     EXCLUDED_APPS = ()
     # Destination storage

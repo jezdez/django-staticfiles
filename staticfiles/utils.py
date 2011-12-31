@@ -40,6 +40,25 @@ def matches_patterns(path, patterns=None):
             return True
     return False
 
+def get_filtered_patterns(storage, ignore_patterns=None, location=''):
+    """
+    Return a filtered list of patterns that match the storage location.
+    """
+    if ignore_patterns is None:
+        ignore_patterns = []
+    if location:
+        abs_location = os.path.join(storage.location, location)
+    else:
+        abs_location = storage.location
+    ignore_filtered = []
+    for pattern in ignore_patterns:
+        head, tail = os.path.split(pattern)
+        if not tail:
+            head, tail = os.path.split(head)
+        if head in ('', location, abs_location):
+            ignore_filtered.append(tail)
+    return ignore_filtered
+
 def get_files(storage, ignore_patterns=None, location=''):
     """
     Recursively walk the storage directories yielding the paths
@@ -47,15 +66,16 @@ def get_files(storage, ignore_patterns=None, location=''):
     """
     if ignore_patterns is None:
         ignore_patterns = []
+    ignore_filtered = get_filtered_patterns(storage, ignore_patterns, location)
     directories, files = storage.listdir(location)
     for fn in files:
-        if matches_patterns(fn, ignore_patterns):
+        if matches_patterns(fn, ignore_filtered):
             continue
         if location:
             fn = os.path.join(location, fn)
         yield fn
     for dir in directories:
-        if matches_patterns(dir, ignore_patterns):
+        if matches_patterns(dir, ignore_filtered):
             continue
         if location:
             dir = os.path.join(location, dir)

@@ -9,6 +9,7 @@ from django.core.management.base import CommandError, NoArgsCommand
 from django.utils.encoding import smart_str, smart_unicode
 
 from staticfiles import finders, storage
+from staticfiles.conf import settings
 
 
 class Command(NoArgsCommand):
@@ -64,6 +65,7 @@ class Command(NoArgsCommand):
         self.clear = options['clear']
         self.dry_run = options['dry_run']
         ignore_patterns = options['ignore_patterns']
+        ignore_patterns.extend(settings.STATICFILES_IGNORE_PATTERNS)
         if options['use_default_ignore_patterns']:
             ignore_patterns += ['CVS', '.*', '*~']
         self.ignore_patterns = list(set(ignore_patterns))

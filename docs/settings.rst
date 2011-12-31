@@ -89,6 +89,25 @@ This would allow you to refer to the local file
 
     <a href="{{ STATIC_URL }}downloads/polls_20101022.tar.gz">
 
+``STATICFILES_IGNORE_PATTERNS``
+-------------------------------
+
+:Default: ``[]``
+
+This setting defines patterns to be ignored by the :ref:`collectstatic`
+management command.
+
+This should be set to a list or tuple of strings that contain file or
+directory names and may include a relative or absolute file system path, e.g.::
+
+    STATICFILES_IGNORE_PATTERNS = (
+        "*.txt",
+        "tests",
+        "css/*.old",
+        "/opt/webfiles/common/*.txt",
+        "/opt/webfiles/common/temp",
+    )
+
 ``STATICFILES_EXCLUDED_APPS``
 -----------------------------
 
