@@ -63,15 +63,21 @@ class BaseStaticFilesTestCase(object):
         self.old_debug = settings.DEBUG
         settings.DEBUG = True
 
+        testfiles_path = os.path.join(TEST_ROOT, 'apps', 'test', 'static', 'test')
         # To make sure SVN doesn't hangs itself with the non-ASCII characters
         # during checkout, we actually create one file dynamically.
-        self._nonascii_filepath = os.path.join(
-            TEST_ROOT, 'apps', 'test', 'static', 'test', u'fi\u015fier.txt')
+        self._nonascii_filepath = os.path.join(testfiles_path, u'fi\u015fier.txt')
         with codecs.open(self._nonascii_filepath, 'w', 'utf-8') as f:
             f.write(u"fi\u015fier in the app dir")
+        # And also create the stupid hidden file to dwarf the setup.py's
+        # package data handling.
+        self._hidden_filepath = os.path.join(testfiles_path, '.hidden')
+        with codecs.open(self._hidden_filepath, 'w', 'utf-8') as f:
+            f.write("This file should be ignored.\n")
 
     def tearDown(self):
         os.unlink(self._nonascii_filepath)
+        os.unlink(self._hidden_filepath)
         settings.DEBUG = self.old_debug
 
     def assertFileContains(self, filepath, text):
