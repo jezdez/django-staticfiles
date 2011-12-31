@@ -46,16 +46,19 @@ def get_filtered_patterns(storage, ignore_patterns=None, location=''):
     """
     if ignore_patterns is None:
         ignore_patterns = []
+    storage_prefix = getattr(storage, 'prefix', None) or ''
     if location:
+        rel_location = os.path.join(storage_prefix, location)
         abs_location = os.path.join(storage.location, location)
     else:
+        rel_location = storage_prefix
         abs_location = storage.location
     ignore_filtered = []
     for pattern in ignore_patterns:
         head, tail = os.path.split(pattern)
         if not tail:
             head, tail = os.path.split(head)
-        if head in ('', location, abs_location):
+        if head in ('', rel_location, abs_location):
             ignore_filtered.append(tail)
     return ignore_filtered
 

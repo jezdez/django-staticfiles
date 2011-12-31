@@ -263,6 +263,7 @@ class TestCollection(CollectionTestCase, TestDefaults):
         self.assertFileNotFound('test/test.ignoreme4')
         self.assertFileNotFound('test/test_relative.ignoreme5')
         self.assertFileNotFound('test/test_absolute.ignoreme6')
+        self.assertFileNotFound('prefix/test.ignoreme7')
         self.assertFileNotFound('ignored/test_directory.txt')
 
 

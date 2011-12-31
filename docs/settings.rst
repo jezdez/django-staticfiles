@@ -98,7 +98,8 @@ This setting defines patterns to be ignored by the :ref:`collectstatic`
 management command.
 
 This should be set to a list or tuple of strings that contain file or
-directory names and may include a relative or absolute file system path, e.g.::
+directory names and may include an absolute file system path or a path
+relative to STATIC_ROOT_, e.g.::
 
     STATICFILES_IGNORE_PATTERNS = (
         "*.txt",
