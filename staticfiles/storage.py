@@ -4,12 +4,14 @@ import posixpath
 import re
 import warnings
 from datetime import datetime
+from urllib import unquote
+from urlparse import urlsplit, urlunsplit, urldefrag
 
 from django import VERSION
 from django.conf import settings
 from django.core.cache import (get_cache, InvalidCacheBackendError,
                                cache as default_cache)
-from django.core.files.base import ContentFile
+from django.core.files.base import File, ContentFile
 from django.core.files.storage import FileSystemStorage, get_storage_class
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_unicode, smart_str
@@ -20,6 +22,23 @@ from django.utils.hashcompat import md5_constructor
 
 from staticfiles.utils import matches_patterns
 
+
+def setattr_ifmissing(clss, name, func):
+    for cls in clss:
+        if not hasattr(cls, name):
+            setattr(cls, name, func)
+
+
+def __enter__(self):
+    return self
+
+
+def __exit__(self, exc_type, exc_value, tb):
+    self.close()
+
+# forcing the storage backend file to be a context manager
+setattr_ifmissing([File, ContentFile], '__enter__', __enter__)
+setattr_ifmissing([File, ContentFile], '__exit__', __exit__)
 
 fragments_re = re.compile(r'([?#].*)$')
 
@@ -96,29 +115,30 @@ class CachedFilesMixin(object):
                 compiled = re.compile(pattern)
                 self._patterns.setdefault(extension, []).append(compiled)
 
-    def strip_fragment(self, name):
-        fragments = fragments_re.split(name)
-        return fragments[0], ''.join(fragments[1:])
-
     def hashed_name(self, name, content=None):
-        name, fragment = self.strip_fragment(name)
+        parsed_name = urlsplit(unquote(name))
+        clean_name = parsed_name.path
         if content is None:
-            if not self.exists(name):
+            if not self.exists(clean_name):
                 raise ValueError("The file '%s' could not be found with %r." %
-                                 (name, self))
+                                 (clean_name, self))
             try:
-                content = self.open(name)
+                content = self.open(clean_name)
             except IOError:
-                # Handle directory fragments
+                # Handle directory paths and fragments
                 return name
-        path, filename = os.path.split(name)
+        path, filename = os.path.split(clean_name)
         root, ext = os.path.splitext(filename)
         # Get the MD5 hash of the file
         md5 = md5_constructor()
         for chunk in content.chunks():
             md5.update(chunk)
         md5sum = md5.hexdigest()[:12]
-        return os.path.join(path, u"%s.%s%s" % (root, md5sum, ext))
+        hashed_name = os.path.join(path, u"%s.%s%s" %
+                                   (root, md5sum, ext))
+        unparsed_name = list(parsed_name)
+        unparsed_name[2] = hashed_name
+        return urlunsplit(unparsed_name)
 
     def cache_key(self, name):
         return u'staticfiles:cache:%s' % name
@@ -127,18 +147,32 @@ class CachedFilesMixin(object):
         """
         Returns the real URL in DEBUG mode.
         """
-        super_url = super(CachedFilesMixin, self).url
         if settings.DEBUG and not force:
-            return super_url(name)
-        name, fragment = self.strip_fragment(name)
-        cache_key = self.cache_key(name)
-        hashed_name = self.cache.get(cache_key)
-        if hashed_name is None:
-            hashed_name = self.hashed_name(name)
-        url = super_url(hashed_name)
-        if fragment:
-            url = "%s%s" % (url, fragment)
-        return url
+            hashed_name, fragment = name, ''
+        else:
+            clean_name, fragment = urldefrag(name)
+            cache_key = self.cache_key(name)
+            hashed_name = self.cache.get(cache_key)
+            if hashed_name is None:
+                hashed_name = self.hashed_name(clean_name).replace('\\', '/')
+                # set the cache if there was a miss
+                # (e.g. if cache server goes down)
+                self.cache.set(cache_key, hashed_name)
+
+        final_url = super(CachedFilesMixin, self).url(hashed_name)
+
+        # Special casing for a @font-face hack, like url(myfont.eot?#iefix")
+        # http://www.fontspring.com/blog/the-new-bulletproof-font-face-syntax
+        query_fragment = '?#' in name  # [sic!]
+        if fragment or query_fragment:
+            urlparts = list(urlsplit(final_url))
+            if fragment and not urlparts[4]:
+                urlparts[4] = fragment
+            if query_fragment and not urlparts[3]:
+                urlparts[2] += '?'
+            final_url = urlunsplit(urlparts)
+
+        return unquote(final_url)
 
     def url_converter(self, name):
         """
@@ -155,7 +189,7 @@ class CachedFilesMixin(object):
             # fragments and data-uri URLs
             if url.startswith(('#', 'http:', 'https:', 'data:')):
                 return matched
-            name_parts = name.split('/')
+            name_parts = name.split(os.sep)
             # Using posix normpath here to remove duplicates
             url = posixpath.normpath(url)
             url_parts = url.split('/')
@@ -173,9 +207,10 @@ class CachedFilesMixin(object):
                 else:
                     start, end = 1, sub_level - 1
             joined_result = '/'.join(name_parts[:-start] + url_parts[end:])
-            hashed_url = self.url(joined_result, force=True)
+            hashed_url = self.url(unquote(joined_result), force=True)
+
             # Return the hashed and normalized version to the file
-            return 'url("%s")' % hashed_url
+            return 'url("%s")' % unquote(hashed_url)
         return converter
 
     def post_process(self, paths, dry_run=False, **options):
@@ -201,8 +236,7 @@ class CachedFilesMixin(object):
             # first get a hashed name for the given file
             hashed_name = self.hashed_name(name)
 
-            original_file = self.open(name)
-            try:
+            with self.open(name) as original_file:
                 # then get the original's file content
                 content = original_file.read()
 
@@ -224,8 +258,6 @@ class CachedFilesMixin(object):
 
                 # and then set the cache accordingly
                 self.cache.set(self.cache_key(name), hashed_name)
-            finally:
-                original_file.close()
 
         return processed_files
 
