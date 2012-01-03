@@ -26,9 +26,6 @@ from staticfiles import finders, storage
 from staticfiles.conf import settings
 
 
-TEST_ROOT = os.path.normcase(os.path.dirname(__file__))
-
-
 def rmtree_errorhandler(func, path, exc_info):
     """
     On Windows, some files are read-only (e.g. in in .svn dirs), so when
@@ -63,7 +60,7 @@ class BaseStaticFilesTestCase(object):
         self.old_debug = settings.DEBUG
         settings.DEBUG = True
 
-        testfiles_path = os.path.join(TEST_ROOT, 'apps', 'test', 'static', 'test')
+        testfiles_path = os.path.join(settings.TEST_ROOT, 'apps', 'test', 'static', 'test')
         # To make sure SVN doesn't hangs itself with the non-ASCII characters
         # during checkout, we actually create one file dynamically.
         self._nonascii_filepath = os.path.join(testfiles_path, u'fi\u015fier.txt')
@@ -75,7 +72,7 @@ class BaseStaticFilesTestCase(object):
         with codecs.open(self._hidden_filepath, 'w', 'utf-8') as f:
             f.write("should be ignored")
         self._backup_filepath = os.path.join(
-            TEST_ROOT, 'project', 'documents', 'test', 'backup~')
+            settings.TEST_ROOT, 'project', 'documents', 'test', 'backup~')
         with codecs.open(self._backup_filepath, 'w', 'utf-8') as f:
             f.write("should be ignored")
 
@@ -539,7 +536,7 @@ class TestFileSystemFinder(StaticFilesTestCase, FinderTestCase):
     def setUp(self):
         super(TestFileSystemFinder, self).setUp()
         self.finder = finders.FileSystemFinder()
-        test_file_path = os.path.join(TEST_ROOT, 'project', 'documents', 'test', 'file.txt')
+        test_file_path = os.path.join(settings.TEST_ROOT, 'project', 'documents', 'test', 'file.txt')
         self.find_first = (os.path.join('test', 'file.txt'), test_file_path)
         self.find_all = (os.path.join('test', 'file.txt'), [test_file_path])
 
@@ -551,7 +548,7 @@ class TestAppDirectoriesFinder(StaticFilesTestCase, FinderTestCase):
     def setUp(self):
         super(TestAppDirectoriesFinder, self).setUp()
         self.finder = finders.AppDirectoriesFinder()
-        test_file_path = os.path.join(TEST_ROOT, 'apps', 'test', 'static', 'test', 'file1.txt')
+        test_file_path = os.path.join(settings.TEST_ROOT, 'apps', 'test', 'static', 'test', 'file1.txt')
         self.find_first = (os.path.join('test', 'file1.txt'), test_file_path)
         self.find_all = (os.path.join('test', 'file1.txt'), [test_file_path])
 

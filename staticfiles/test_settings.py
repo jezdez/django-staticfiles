@@ -2,7 +2,7 @@ import os
 
 SITE_ID = 1
 
-TEST_ROOT = os.path.dirname(os.path.abspath(__file__))
+TEST_ROOT = os.path.join(os.path.normcase(os.path.dirname(os.path.abspath(__file__))), 'tests')
 
 DATABASE_ENGINE = 'sqlite3'
 
