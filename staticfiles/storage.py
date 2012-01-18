@@ -137,10 +137,10 @@ class CachedFilesMixin(object):
         root, ext = os.path.splitext(filename)
         # Get the MD5 hash of the file
         md5 = md5_constructor()
-        readmethod = {
-            True: getattr(content, 'chunks', None),
-            False: getattr(content, 'read'),
-        }[hasattr(content, 'chunks')]
+        if hasattr(content, 'chunks'):
+            readmethod = getattr(content, 'chunks')
+        else:
+            readmethod = getattr(content, 'read')
         for chunk in readmethod():
             md5.update(chunk)
         md5sum = md5.hexdigest()[:12]
@@ -232,11 +232,11 @@ class CachedFilesMixin(object):
             return
 
         # delete cache of all handled paths
-        self.cache.delete_many([self.cache_key(path) for path in paths.keys()])
+        self.cache.delete_many([self.cache_key(path) for path in paths])
 
         # only try munging the files we have patterns for
         matches = lambda path: matches_patterns(path, self._patterns.keys())
-        munge_paths = [path for path in paths.keys() if matches(path)]
+        munge_paths = [path for path in paths if matches(path)]
 
         # then sort the files by the directory level
         path_level = lambda name: len(name.split(os.sep))
@@ -252,7 +252,6 @@ class CachedFilesMixin(object):
 
                 # munge files if they're mungable
                 if name in munge_paths:
-                    # content = original_file.read()
                     converter = self.url_converter(name)
                     for patterns in self._patterns.values():
                         for pattern in patterns:
