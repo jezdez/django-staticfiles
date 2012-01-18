@@ -49,6 +49,7 @@ class Command(NoArgsCommand):
         self.copied_files = []
         self.symlinked_files = []
         self.unmodified_files = []
+        self.postprocessed_files = []
         self.storage = storage.staticfiles_storage
         try:
             self.storage.path('')
@@ -114,7 +115,7 @@ Type 'yes' to continue, or 'no' to cancel: """
             False: self.copy_file,
         }[self.symlink]
 
-        found_files = []
+        found_files = {}
         for finder in finders.get_finders():
             for path, storage in finder.list(self.ignore_patterns):
                 # Prefix the relative path if the source storage contains it
@@ -122,30 +123,38 @@ Type 'yes' to continue, or 'no' to cancel: """
                     prefixed_path = os.path.join(storage.prefix, path)
                 else:
                     prefixed_path = path
-                found_files.append(prefixed_path)
+                found_files[prefixed_path] = (storage, storage.path(path))
                 handler(path, prefixed_path, storage)
+
+        modified_files = self.copied_files + self.symlinked_files
 
         # Here we check if the storage backend has a post_process
         # method and pass it the list of modified files.
         if self.post_process and hasattr(self.storage, 'post_process'):
-            for path in self.storage.post_process(found_files, **options):
-                self.log(u"Post-processed '%s'" % path, level=1)
+            for path, processed in self.storage.post_process(found_files, **options):
+                if processed:
+                    self.log(u"Post-processed '%s'" % path, level=1)
+                    self.postprocessed_files.append(path)
+                else:
+                    self.log(u"Skipping post-processing of '%s' (not modified)" % path)
 
-        modified_files = self.copied_files + self.symlinked_files
         actual_count = len(modified_files)
         unmodified_count = len(self.unmodified_files)
+        postprocessed_count = len(self.postprocessed_files)
 
         if self.verbosity >= 1:
             template = ("\n%(actual_count)s %(identifier)s %(action)s"
-                        "%(destination)s%(unmodified)s.\n")
+                        "%(destination)s%(unmodified)s%(postprocessed)s.\n")
             summary = template % {
                 'actual_count': actual_count,
-                'identifier': 'static file' + (actual_count > 1 and 's' or ''),
+                'identifier': 'static file' + (actual_count != 1 and 's' or ''),
                 'action': self.symlink and 'symlinked' or 'copied',
                 'destination': (destination_path and " to '%s'"
                                 % destination_path or ''),
                 'unmodified': (self.unmodified_files and ', %s unmodified'
                                % unmodified_count or ''),
+                'postprocessed': (self.postprocessed_files and ', %s post-processed'
+                               % postprocessed_count or ''),
             }
             self.stdout.write(smart_str(summary))
 
