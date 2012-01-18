@@ -217,10 +217,9 @@ class CachedFilesMixin(object):
         """
         Post process the given list of files (called from collectstatic).
         """
-        processed_files = []
         # don't even dare to process the files if we're in dry run mode
         if dry_run:
-            return processed_files
+            return
 
         # delete cache of all handled paths
         self.cache.delete_many([self.cache_key(path) for path in paths])
@@ -254,12 +253,11 @@ class CachedFilesMixin(object):
                 content_file = ContentFile(smart_str(content))
                 saved_name = self._save(hashed_name, content_file)
                 hashed_name = force_unicode(saved_name.replace('\\', '/'))
-                processed_files.append(hashed_name)
 
                 # and then set the cache accordingly
                 self.cache.set(self.cache_key(name), hashed_name)
 
-        return processed_files
+                yield hashed_name
 
 
 class CachedStaticFilesStorage(CachedFilesMixin, StaticFilesStorage):

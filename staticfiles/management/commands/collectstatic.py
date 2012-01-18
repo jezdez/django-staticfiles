@@ -128,11 +128,8 @@ Type 'yes' to continue, or 'no' to cancel: """
         # Here we check if the storage backend has a post_process
         # method and pass it the list of modified files.
         if self.post_process and hasattr(self.storage, 'post_process'):
-            post_processed = self.storage.post_process(found_files, **options)
-            for path in post_processed:
+            for path in self.storage.post_process(found_files, **options):
                 self.log(u"Post-processed '%s'" % path, level=1)
-        else:
-            post_processed = []
 
         modified_files = self.copied_files + self.symlinked_files
         actual_count = len(modified_files)
