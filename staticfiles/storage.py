@@ -3,6 +3,12 @@ import os
 import posixpath
 import re
 import warnings
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
 from datetime import datetime
 from urllib import unquote
 from urlparse import urlsplit, urlunsplit, urldefrag
@@ -131,7 +137,11 @@ class CachedFilesMixin(object):
         root, ext = os.path.splitext(filename)
         # Get the MD5 hash of the file
         md5 = md5_constructor()
-        for chunk in content.chunks():
+        if hasattr(content, 'chunks'):
+            readmethod = getattr(content, 'chunks')
+        else:
+            readmethod = getattr(content, 'read')
+        for chunk in readmethod():
             md5.update(chunk)
         md5sum = md5.hexdigest()[:12]
         hashed_name = os.path.join(path, u"%s.%s%s" %
@@ -217,49 +227,53 @@ class CachedFilesMixin(object):
         """
         Post process the given list of files (called from collectstatic).
         """
-        processed_files = []
         # don't even dare to process the files if we're in dry run mode
         if dry_run:
-            return processed_files
+            return
 
         # delete cache of all handled paths
         self.cache.delete_many([self.cache_key(path) for path in paths])
 
-        # only try processing the files we have patterns for
+        # only try munging the files we have patterns for
         matches = lambda path: matches_patterns(path, self._patterns.keys())
-        processing_paths = [path for path in paths if matches(path)]
+        munge_paths = [path for path in paths if matches(path)]
 
         # then sort the files by the directory level
         path_level = lambda name: len(name.split(os.sep))
-        for name in sorted(paths, key=path_level, reverse=True):
+        for name in sorted(paths.keys(), key=path_level, reverse=True):
 
-            # first get a hashed name for the given file
-            hashed_name = self.hashed_name(name)
+            # get the original, local file
+            # not the copied-but-unprocessed file, which might be somewhere
+            # far away, like S3, and thus slow to read.
+            storage, raw_path = paths[name]
+            with storage.open(raw_path) as original_file:
 
-            with self.open(name) as original_file:
-                # then get the original's file content
                 content = original_file.read()
 
-                # to apply each replacement pattern on the content
-                if name in processing_paths:
+                # munge files if they're mungable
+                if name in munge_paths:
                     converter = self.url_converter(name)
                     for patterns in self._patterns.values():
                         for pattern in patterns:
                             content = pattern.sub(converter, content)
 
-                # then save the processed result
-                if self.exists(hashed_name):
-                    self.delete(hashed_name)
+                # generate the hash
+                hashed_name = self.hashed_name(name, StringIO(content))
 
+                if self.exists(hashed_name):
+                    self.cache.set(self.cache_key(name), hashed_name)
+                    yield hashed_name, False
+                    continue
+
+                # then save the processed result
                 content_file = ContentFile(smart_str(content))
                 saved_name = self._save(hashed_name, content_file)
                 hashed_name = force_unicode(saved_name.replace('\\', '/'))
-                processed_files.append(hashed_name)
 
                 # and then set the cache accordingly
                 self.cache.set(self.cache_key(name), hashed_name)
 
-        return processed_files
+                yield hashed_name, True
 
 
 class CachedStaticFilesStorage(CachedFilesMixin, StaticFilesStorage):
