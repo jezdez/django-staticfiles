@@ -4,11 +4,6 @@ import posixpath
 import re
 import warnings
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 from datetime import datetime
 from urllib import unquote
 from urlparse import urlsplit, urlunsplit, urldefrag
@@ -137,11 +132,7 @@ class CachedFilesMixin(object):
         root, ext = os.path.splitext(filename)
         # Get the MD5 hash of the file
         md5 = md5_constructor()
-        if hasattr(content, 'chunks'):
-            readmethod = getattr(content, 'chunks')
-        else:
-            readmethod = getattr(content, 'read')
-        for chunk in readmethod():
+        for chunk in content.chunks():
             md5.update(chunk)
         md5sum = md5.hexdigest()[:12]
         hashed_name = os.path.join(path, u"%s.%s%s" %
@@ -234,46 +225,53 @@ class CachedFilesMixin(object):
         # delete cache of all handled paths
         self.cache.delete_many([self.cache_key(path) for path in paths])
 
-        # only try munging the files we have patterns for
+        # only try processing the files we have patterns for
         matches = lambda path: matches_patterns(path, self._patterns.keys())
-        munge_paths = [path for path in paths if matches(path)]
+        processing_paths = [path for path in paths if matches(path)]
 
         # then sort the files by the directory level
         path_level = lambda name: len(name.split(os.sep))
         for name in sorted(paths.keys(), key=path_level, reverse=True):
 
-            # get the original, local file
-            # not the copied-but-unprocessed file, which might be somewhere
-            # far away, like S3, and thus slow to read.
-            storage, raw_path = paths[name]
-            with storage.open(raw_path) as original_file:
+            # use the original, local file, not the copied-but-unprocessed
+            # file, which might be somewhere far away, like S3
+            with paths[name] as original_file:
 
-                content = original_file.read()
+                # generate the hash with the processed content
+                hashed_name = self.hashed_name(name, original_file)
 
-                # munge files if they're mungable
-                if name in munge_paths:
+                # then get the original's file content..
+                if hasattr(original_file, 'seek'):
+                    original_file.seek(0)
+
+                hashed_file_exists = self.exists(hashed_name)
+                processed = False
+
+                # ..to apply each replacement pattern to the content
+                if name in processing_paths:
+                    content = original_file.read()
                     converter = self.url_converter(name)
                     for patterns in self._patterns.values():
                         for pattern in patterns:
                             content = pattern.sub(converter, content)
-
-                # generate the hash
-                hashed_name = self.hashed_name(name, StringIO(content))
-
-                if self.exists(hashed_name):
-                    self.cache.set(self.cache_key(name), hashed_name)
-                    yield hashed_name, False
-                    continue
-
-                # then save the processed result
-                content_file = ContentFile(smart_str(content))
-                saved_name = self._save(hashed_name, content_file)
-                hashed_name = force_unicode(saved_name.replace('\\', '/'))
+                    if hashed_file_exists:
+                        self.delete(hashed_name)
+                    # then save the processed result
+                    content_file = ContentFile(smart_str(content))
+                    saved_name = self._save(hashed_name, content_file)
+                    hashed_name = force_unicode(saved_name.replace('\\', '/'))
+                    processed = True
+                else:
+                    # or handle the case in which neither processing nor
+                    # a changed to the original file happened
+                    if not hashed_file_exists:
+                        processed = True
+                        saved_name = self._save(hashed_name, original_file)
+                        hashed_name = force_unicode(saved_name.replace('\\', '/'))
 
                 # and then set the cache accordingly
                 self.cache.set(self.cache_key(name), hashed_name)
-
-                yield hashed_name, True
+                yield name, hashed_name, processed
 
 
 class CachedStaticFilesStorage(CachedFilesMixin, StaticFilesStorage):

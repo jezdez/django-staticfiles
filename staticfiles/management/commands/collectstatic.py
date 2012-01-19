@@ -7,6 +7,7 @@ from optparse import make_option
 from django.core.files.storage import FileSystemStorage
 from django.core.management.base import CommandError, NoArgsCommand
 from django.utils.encoding import smart_str, smart_unicode
+from django.utils.datastructures import SortedDict
 
 from staticfiles import finders, storage
 
@@ -49,7 +50,7 @@ class Command(NoArgsCommand):
         self.copied_files = []
         self.symlinked_files = []
         self.unmodified_files = []
-        self.postprocessed_files = []
+        self.post_processed_files = []
         self.storage = storage.staticfiles_storage
         try:
             self.storage.path('')
@@ -110,12 +111,12 @@ Type 'yes' to continue, or 'no' to cancel: """
         if self.clear:
             self.clear_dir('')
 
-        handler = {
-            True: self.link_file,
-            False: self.copy_file,
-        }[self.symlink]
+        if self.symlink:
+            handler = self.link_file
+        else:
+            handler = self.copy_file
 
-        found_files = {}
+        found_files = SortedDict()
         for finder in finders.get_finders():
             for path, storage in finder.list(self.ignore_patterns):
                 # Prefix the relative path if the source storage contains it
@@ -123,28 +124,29 @@ Type 'yes' to continue, or 'no' to cancel: """
                     prefixed_path = os.path.join(storage.prefix, path)
                 else:
                     prefixed_path = path
-                found_files[prefixed_path] = (storage, storage.path(path))
+                found_files[prefixed_path] = storage.open(path)
                 handler(path, prefixed_path, storage)
-
-        modified_files = self.copied_files + self.symlinked_files
 
         # Here we check if the storage backend has a post_process
         # method and pass it the list of modified files.
         if self.post_process and hasattr(self.storage, 'post_process'):
-            for path, processed in self.storage.post_process(found_files, **options):
+            processor = self.storage.post_process(found_files, **options)
+            for original_path, processed_path, processed in processor:
                 if processed:
-                    self.log(u"Post-processed '%s'" % path, level=1)
-                    self.postprocessed_files.append(path)
+                    self.log(u"Post-processed '%s' as '%s" %
+                             (original_path, processed_path), level=1)
+                    self.post_processed_files.append(path)
                 else:
-                    self.log(u"Skipping post-processing of '%s' (not modified)" % path)
+                    self.log(u"Skipped post-processing '%s'" % original_path)
 
+        modified_files = self.copied_files + self.symlinked_files
         actual_count = len(modified_files)
         unmodified_count = len(self.unmodified_files)
-        postprocessed_count = len(self.postprocessed_files)
+        post_processed_count = len(self.post_processed_files)
 
         if self.verbosity >= 1:
             template = ("\n%(actual_count)s %(identifier)s %(action)s"
-                        "%(destination)s%(unmodified)s%(postprocessed)s.\n")
+                        "%(destination)s%(unmodified)s%(post_processed)s.\n")
             summary = template % {
                 'actual_count': actual_count,
                 'identifier': 'static file' + (actual_count != 1 and 's' or ''),
@@ -153,8 +155,9 @@ Type 'yes' to continue, or 'no' to cancel: """
                                 % destination_path or ''),
                 'unmodified': (self.unmodified_files and ', %s unmodified'
                                % unmodified_count or ''),
-                'postprocessed': (self.postprocessed_files and ', %s post-processed'
-                               % postprocessed_count or ''),
+                'post_processed': (self.post_processed_files and
+                                   ', %s post-processed'
+                                   % post_processed_count or ''),
             }
             self.stdout.write(smart_str(summary))
 

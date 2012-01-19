@@ -344,7 +344,7 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
                                 "does/not/exist.png",
                                 "/static/does/not/exist.png")
         self.assertStaticRenders("test/file.txt",
-                                 "/static/test/file.dad0999e4f8f.txt")
+                                 "/static/test/file.ea5bccaf16d5.txt")
         self.assertStaticRenders("cached/styles.css",
                                  "/static/cached/styles.93b1147e8552.css")
 
