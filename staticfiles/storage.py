@@ -274,7 +274,7 @@ class CachedFilesMixin(object):
                     processed = True
                 else:
                     # or handle the case in which neither processing nor
-                    # a changed to the original file happened
+                    # a change to the original file happened
                     if not hashed_file_exists:
                         processed = True
                         saved_name = self._save(hashed_name, original_file)
