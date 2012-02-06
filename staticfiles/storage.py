@@ -222,7 +222,7 @@ class CachedFilesMixin(object):
 
         1. renaming files to include a hash of their content for cache-busting,
            and copying those files to the target storage.
-        2. altering files which contain references to other files so they
+        2. adjusting files which contain references to other files so they
            refer to the cache-busting filenames.
 
         If either of these are performed on a file, then that file is considered
@@ -235,9 +235,9 @@ class CachedFilesMixin(object):
         # delete cache of all handled paths
         self.cache.delete_many([self.cache_key(path) for path in paths])
 
-        # only try processing the files we have patterns for
+        # build a list of adjustable files
         matches = lambda path: matches_patterns(path, self._patterns.keys())
-        processing_paths = [path for path in paths if matches(path)]
+        adjustable_paths = [path for path in paths if matches(path)]
 
         # then sort the files by the directory level
         path_level = lambda name: len(name.split(os.sep))
@@ -247,7 +247,8 @@ class CachedFilesMixin(object):
             # file, which might be somewhere far away, like S3
             with paths[name] as original_file:
 
-                # generate the hash with the original content
+                # generate the hash with the original content, even for
+                # adjustable files.
                 hashed_name = self.hashed_name(name, original_file)
 
                 # then get the original's file content..
@@ -258,7 +259,7 @@ class CachedFilesMixin(object):
                 processed = False
 
                 # ..to apply each replacement pattern to the content
-                if name in processing_paths:
+                if name in adjustable_paths:
                     content = original_file.read()
                     converter = self.url_converter(name)
                     for patterns in self._patterns.values():
