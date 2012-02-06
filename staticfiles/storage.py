@@ -217,6 +217,16 @@ class CachedFilesMixin(object):
     def post_process(self, paths, dry_run=False, **options):
         """
         Post process the given list of files (called from collectstatic).
+
+        Processing is actually two separate operations:
+
+        1. renaming files to include a hash of their content for cache-busting,
+           and copying those files to the target storage.
+        2. altering files which contain references to other files so they
+           refer to the cache-busting filenames.
+
+        If either of these are performed on a file, then that file is considered
+        post-processed.
         """
         # don't even dare to process the files if we're in dry run mode
         if dry_run:
@@ -237,7 +247,7 @@ class CachedFilesMixin(object):
             # file, which might be somewhere far away, like S3
             with paths[name] as original_file:
 
-                # generate the hash with the processed content
+                # generate the hash with the original content
                 hashed_name = self.hashed_name(name, original_file)
 
                 # then get the original's file content..
