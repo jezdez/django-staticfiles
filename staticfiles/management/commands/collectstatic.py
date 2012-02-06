@@ -62,51 +62,26 @@ class Command(NoArgsCommand):
         if hasattr(os, 'stat_float_times'):
             os.stat_float_times(False)
 
-    def handle_noargs(self, **options):
+    def _set_options(self, **options):
+        self.interactive = options['interactive']
+        self.verbosity = int(options.get('verbosity', 1))
+        self.symlink = options['link']
         self.clear = options['clear']
         self.dry_run = options['dry_run']
         ignore_patterns = options['ignore_patterns']
         if options['use_default_ignore_patterns']:
             ignore_patterns += ['CVS', '.*', '*~']
         self.ignore_patterns = list(set(ignore_patterns))
-        self.interactive = options['interactive']
-        self.symlink = options['link']
-        self.verbosity = int(options.get('verbosity', 1))
         self.post_process = options['post_process']
 
+    def collect(self, **options):
+        self._set_options(**options)
         if self.symlink:
             if sys.platform == 'win32':
                 raise CommandError("Symlinking is not supported by this "
                                    "platform (%s)." % sys.platform)
             if not self.local:
                 raise CommandError("Can't symlink to a remote destination.")
-
-        # Warn before doing anything more.
-        if (isinstance(self.storage, FileSystemStorage) and
-                self.storage.location):
-            destination_path = self.storage.location
-            destination_display = ':\n\n    %s' % destination_path
-        else:
-            destination_path = None
-            destination_display = '.'
-
-        if self.clear:
-            clear_display = 'This will DELETE EXISTING FILES!'
-        else:
-            clear_display = 'This will overwrite existing files!'
-
-        if self.interactive:
-            confirm = raw_input(u"""
-You have requested to collect static files at the destination
-location as specified in your settings%s
-
-%s
-Are you sure you want to do this?
-
-Type 'yes' to continue, or 'no' to cancel: """
-% (destination_display, clear_display))
-            if confirm != 'yes':
-                raise CommandError("Collecting static files cancelled.")
 
         if self.clear:
             self.clear_dir('')
@@ -139,23 +114,58 @@ Type 'yes' to continue, or 'no' to cancel: """
                 else:
                     self.log(u"Skipped post-processing '%s'" % original_path)
 
-        modified_files = self.copied_files + self.symlinked_files
-        actual_count = len(modified_files)
-        unmodified_count = len(self.unmodified_files)
-        post_processed_count = len(self.post_processed_files)
+        return {
+            'modified': self.copied_files + self.symlinked_files,
+            'unmodified': self.unmodified_files,
+            'post_processed': self.post_processed_files
+        }
+
+    def handle_noargs(self, **options):
+        self._set_options(**options)
+        # Warn before doing anything more.
+        if (isinstance(self.storage, FileSystemStorage) and
+                self.storage.location):
+            destination_path = self.storage.location
+            destination_display = ':\n\n    %s' % destination_path
+        else:
+            destination_path = None
+            destination_display = '.'
+
+        if self.clear:
+            clear_display = 'This will DELETE EXISTING FILES!'
+        else:
+            clear_display = 'This will overwrite existing files!'
+
+        if self.interactive:
+            confirm = raw_input(u"""
+You have requested to collect static files at the destination
+location as specified in your settings%s
+
+%s
+Are you sure you want to do this?
+
+Type 'yes' to continue, or 'no' to cancel: """
+% (destination_display, clear_display))
+            if confirm != 'yes':
+                raise CommandError("Collecting static files cancelled.")
+
+        collected = self.collect(**options)
+        modified_count = len(collected['modified'])
+        unmodified_count = len(collected['unmodified'])
+        post_processed_count = len(collected['post_processed'])
 
         if self.verbosity >= 1:
-            template = ("\n%(actual_count)s %(identifier)s %(action)s"
+            template = ("\n%(modified_count)s %(identifier)s %(action)s"
                         "%(destination)s%(unmodified)s%(post_processed)s.\n")
             summary = template % {
-                'actual_count': actual_count,
-                'identifier': 'static file' + (actual_count != 1 and 's' or ''),
+                'modified_count': modified_count,
+                'identifier': 'static file' + (modified_count != 1 and 's' or ''),
                 'action': self.symlink and 'symlinked' or 'copied',
                 'destination': (destination_path and " to '%s'"
                                 % destination_path or ''),
-                'unmodified': (self.unmodified_files and ', %s unmodified'
+                'unmodified': (collected['unmodified'] and ', %s unmodified'
                                % unmodified_count or ''),
-                'post_processed': (self.post_processed_files and
+                'post_processed': (collected['post_processed'] and
                                    ', %s post-processed'
                                    % post_processed_count or ''),
             }
