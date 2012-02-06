@@ -448,10 +448,9 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
             'use_default_ignore_patterns': True,
             'ignore_patterns': ['*.ignoreme']
         }
-        from pprint import pprint
 
-        c = CollectstaticCommand()
-        stats = c.collect(**collectstatic_args)
+        collectstatic_cmd = CollectstaticCommand()
+        stats = collectstatic_cmd.collect(**collectstatic_args)
         self.assertTrue(u'cached/css/window.css' in stats['post_processed'])
         self.assertTrue(u'cached/css/img/window.png' in stats['unmodified'])
 
