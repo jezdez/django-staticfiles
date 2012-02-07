@@ -450,7 +450,8 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         }
 
         collectstatic_cmd = CollectstaticCommand()
-        stats = collectstatic_cmd.collect(**collectstatic_args)
+        collectstatic_cmd.set_options(**collectstatic_args)
+        stats = collectstatic_cmd.collect()
         self.assertTrue(u'cached/css/window.css' in stats['post_processed'])
         self.assertTrue(u'cached/css/img/window.png' in stats['unmodified'])
 

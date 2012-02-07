@@ -62,7 +62,10 @@ class Command(NoArgsCommand):
         if hasattr(os, 'stat_float_times'):
             os.stat_float_times(False)
 
-    def _set_options(self, **options):
+    def set_options(self, **options):
+        """
+        Set instance variables based on an options dict
+        """
         self.interactive = options['interactive']
         self.verbosity = int(options.get('verbosity', 1))
         self.symlink = options['link']
@@ -74,8 +77,12 @@ class Command(NoArgsCommand):
         self.ignore_patterns = list(set(ignore_patterns))
         self.post_process = options['post_process']
 
-    def collect(self, **options):
-        self._set_options(**options)
+    def collect(self):
+        """
+        Perform the bulk of the work of collectstatic.
+
+        Split off from handle_noargs() to facilitate testing.
+        """
         if self.symlink:
             if sys.platform == 'win32':
                 raise CommandError("Symlinking is not supported by this "
@@ -105,7 +112,7 @@ class Command(NoArgsCommand):
         # Here we check if the storage backend has a post_process
         # method and pass it the list of modified files.
         if self.post_process and hasattr(self.storage, 'post_process'):
-            processor = self.storage.post_process(found_files, **options)
+            processor = self.storage.post_process(found_files, dry_run=self.dry_run)
             for original_path, processed_path, processed in processor:
                 if processed:
                     self.log(u"Post-processed '%s' as '%s" %
@@ -121,7 +128,7 @@ class Command(NoArgsCommand):
         }
 
     def handle_noargs(self, **options):
-        self._set_options(**options)
+        self.set_options(**options)
         # Warn before doing anything more.
         if (isinstance(self.storage, FileSystemStorage) and
                 self.storage.location):
@@ -149,7 +156,7 @@ Type 'yes' to continue, or 'no' to cancel: """
             if confirm != 'yes':
                 raise CommandError("Collecting static files cancelled.")
 
-        collected = self.collect(**options)
+        collected = self.collect()
         modified_count = len(collected['modified'])
         unmodified_count = len(collected['unmodified'])
         post_processed_count = len(collected['post_processed'])
