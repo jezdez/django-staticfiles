@@ -30,6 +30,14 @@ STATICFILES_DIRS = (
     ('prefix', os.path.join(TEST_ROOT, 'project', 'prefixed')),
 )
 
+STATICFILES_IGNORE_PATTERNS = (
+    '*.ignoreme4',
+    os.path.join('test', '*.ignoreme5'),
+    os.path.join(TEST_ROOT, 'project', 'documents', 'test', '*.ignoreme6'),
+    os.path.join('prefix', '*.ignoreme7'),
+    os.path.join(TEST_ROOT, 'project', 'documents', 'ignored'),
+)
+
 STATICFILES_EXCLUDED_APPS = (
     'staticfiles.tests.apps.skip',
 )
