@@ -49,7 +49,7 @@ See also STATIC_ROOT_.
 ``STATICFILES_DIRS``
 --------------------
 
-:Default: ``[]``
+:Default: ``()``
 
 This setting defines the additional locations the staticfiles app will traverse
 if the :class:`FileSystemFinder` finder is enabled, e.g. if you use the
@@ -92,7 +92,7 @@ This would allow you to refer to the local file
 ``STATICFILES_IGNORE_PATTERNS``
 -------------------------------
 
-:Default: ``[]``
+:Default: ``()``
 
 This setting defines patterns to be ignored by the :ref:`collectstatic`
 management command.
@@ -112,7 +112,7 @@ relative to STATIC_ROOT_, e.g.::
 ``STATICFILES_EXCLUDED_APPS``
 -----------------------------
 
-:Default: ``[]``
+:Default: ``()``
 
 A sequence of app paths that should be ignored when searching for static
 files::

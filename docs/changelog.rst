@@ -4,6 +4,9 @@ Changelog
 v1.1.3 (in development)
 -----------------------
 
+* Added ``STATICFILES_IGNORE_PATTERNS`` setting to globally ignore
+  files when running the ``collectstatic`` management command.
+
 * Refactored ``CachedFilesMixin`` and management command to only
   post process the collected files if really needed.
 
