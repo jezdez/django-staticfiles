@@ -135,7 +135,7 @@ class BaseCollectionTestCase(BaseStaticFilesTestCase, unittest2.TestCase):
     def run_collectstatic(self, **kwargs):
         ignore_patterns = [
             '*.ignoreme', os.path.join('test', '*.ignoreme2'), os.path.join(
-                TEST_ROOT, 'apps', 'test', 'static', 'test', '*.ignoreme3')]
+                settings.TEST_ROOT, 'apps', 'test', 'static', 'test', '*.ignoreme3')]
         call_command('collectstatic', interactive=False, verbosity='0',
                      ignore_patterns=ignore_patterns, **kwargs)
 
