@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
     'staticfiles',
+    'staticfiles.tests',
     'staticfiles.tests.apps.test',
     'staticfiles.tests.apps.no_label',
     'staticfiles.tests.apps.skip',
