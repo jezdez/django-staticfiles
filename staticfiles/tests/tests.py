@@ -24,6 +24,8 @@ except ImportError:
 
 from staticfiles import finders, storage
 from staticfiles.conf import settings
+from staticfiles.management.commands.collectstatic import Command as \
+    CollectstaticCommand
 
 
 def rmtree_errorhandler(func, path, exc_info):
@@ -344,7 +346,7 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
                                 "does/not/exist.png",
                                 "/static/does/not/exist.png")
         self.assertStaticRenders("test/file.txt",
-                                 "/static/test/file.dad0999e4f8f.txt")
+                                 "/static/test/file.ea5bccaf16d5.txt")
         self.assertStaticRenders("cached/styles.css",
                                  "/static/cached/styles.93b1147e8552.css")
 
@@ -427,6 +429,31 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         with storage.staticfiles_storage.open(relpath) as relfile:
             self.assertIn("https://", relfile.read())
 
+    def test_post_processing(self):
+        """Test that post_processing behaves correctly.
+
+        Files that are alterable should always be post-processed; files that
+        aren't should be skipped.
+
+        collectstatic has already been called once in setUp() for this testcase,
+        therefore we check by verifying behavior on a second run.
+        """
+        collectstatic_args = {
+            'interactive': False,
+            'verbosity': '0',
+            'link': False,
+            'clear': False,
+            'dry_run': False,
+            'post_process': True,
+            'use_default_ignore_patterns': True,
+            'ignore_patterns': ['*.ignoreme']
+        }
+
+        collectstatic_cmd = CollectstaticCommand()
+        collectstatic_cmd.set_options(**collectstatic_args)
+        stats = collectstatic_cmd.collect()
+        self.assertTrue(u'cached/css/window.css' in stats['post_processed'])
+        self.assertTrue(u'cached/css/img/window.png' in stats['unmodified'])
 
 if sys.platform != 'win32':
 
