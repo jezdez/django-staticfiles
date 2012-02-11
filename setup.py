@@ -1,11 +1,20 @@
 import os
+import re
 import sys
 from fnmatch import fnmatchcase
 from distutils.util import convert_path
 from setuptools import setup, find_packages
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def read(*parts):
+    return open(os.path.join(os.path.dirname(__file__), *parts)).read()
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
 
 # Provided as an attribute, so you can append to these instead
 # of replicating them:
@@ -97,9 +106,10 @@ def find_package_data(
     return out
 
 
+
 setup(
     name="django-staticfiles",
-    version=":versiontools:staticfiles:",
+    version=find_version("staticfiles", "__init__.py"),
     description="A Django app that provides helpers for serving static files.",
     long_description=read("README.rst"),
     author="Jannis Leidel",
@@ -123,8 +133,5 @@ setup(
     zip_safe=False,
     install_requires=[
         'django-appconf >= 0.4',
-    ],
-    setup_requires=[
-        'versiontools >= 1.6',
     ],
 )
