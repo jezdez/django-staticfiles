@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'django-staticfiles'
-copyright = u'2009-2011, Jannis Leidel'
+copyright = u'2009-2012, Jannis Leidel'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -228,7 +228,7 @@ man_pages = [
 epub_title = u'django-staticfiles'
 epub_author = u'Jannis Leidel'
 epub_publisher = u'Jannis Leidel'
-epub_copyright = u'2010, Jannis Leidel'
+epub_copyright = u'2009-2012, Jannis Leidel'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
