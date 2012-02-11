@@ -112,7 +112,8 @@ class Command(NoArgsCommand):
         # Here we check if the storage backend has a post_process
         # method and pass it the list of modified files.
         if self.post_process and hasattr(self.storage, 'post_process'):
-            processor = self.storage.post_process(found_files, dry_run=self.dry_run)
+            processor = self.storage.post_process(found_files,
+                                                  dry_run=self.dry_run)
             for original_path, processed_path, processed in processor:
                 if processed:
                     self.log(u"Post-processed '%s' as '%s" %
@@ -124,7 +125,7 @@ class Command(NoArgsCommand):
         return {
             'modified': self.copied_files + self.symlinked_files,
             'unmodified': self.unmodified_files,
-            'post_processed': self.post_processed_files
+            'post_processed': self.post_processed_files,
         }
 
     def handle_noargs(self, **options):

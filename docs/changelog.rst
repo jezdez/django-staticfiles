@@ -1,6 +1,16 @@
 Changelog
 =========
 
+v1.1.3 (in development)
+-----------------------
+
+* Refactored ``CachedFilesMixin`` and management command to only
+  post process the collected files if really needed.
+
+* Added support for URL fragment to the ``CachedStaticFilesStorage``.
+
+* Stopped using versiontools_ again as it caused installation time issues.
+
 v1.1.2 (2011-08-25)
 -------------------
 
@@ -11,10 +21,10 @@ v1.1.1 (2011-08-22)
 
 * Fixed resolution of relative paths in ``CachedStaticFilesStorage``.
 
-* Started to use `django-appconf`_ and `versiontools`_.
+* Started to use `django-appconf`_ and versiontools_.
 
 .. _`django-appconf`: http://django-appconf.rtfd.org/
-.. _`versiontools`: http://pypi.python.org/pypi/versiontools
+.. _versiontools: http://pypi.python.org/pypi/versiontools
 
 v1.1 (2011-08-18)
 -----------------
