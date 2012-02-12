@@ -9,11 +9,12 @@ collectstatic
 -------------
 
 Collects the static files from all installed apps and copies them to the
-:ref:`STATICFILES_STORAGE`.
+:attr:`~django.conf.settings.STATICFILES_STORAGE`.
 
 Duplicate file names are resolved in a similar way to how template resolution
-works. Files are initially searched for in :ref:`STATICFILES_DIRS` locations,
-followed by apps in the order specified by the ``INSTALLED_APPS`` setting.
+works. Files are initially searched for in
+:attr:`~django.conf.settings.STATICFILES_DIRS` locations, followed by apps in
+the order specified by the ``INSTALLED_APPS`` setting.
 
 Some commonly used options are:
 
@@ -46,7 +47,8 @@ Some commonly used options are:
 
     Don't call the
     :meth:`~staticfiles.storage.StaticFilesStorage.post_process`
-    method of the configured :ref:`staticfiles_storage` storage backend.
+    method of the configured
+    :attr:`~django.conf.settings.STATICFILES_STORAGE` storage backend.
 
 For a full list of options, refer to the collectstatic management command help
 by running::
