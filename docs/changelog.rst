@@ -1,8 +1,8 @@
 Changelog
 =========
 
-v1.1.3 (in development)
------------------------
+v1.2 (2012-02-12)
+-----------------
 
 * Added ``STATICFILES_IGNORE_PATTERNS`` setting to globally ignore
   files when running the ``collectstatic`` management command.
