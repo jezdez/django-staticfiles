@@ -137,6 +137,10 @@ class CachedFilesMixin(object):
                                    (root, md5sum, ext))
         unparsed_name = list(parsed_name)
         unparsed_name[2] = hashed_name
+        # Special casing for a @font-face hack, like url(myfont.eot?#iefix")
+        # http://www.fontspring.com/blog/the-new-bulletproof-font-face-syntax
+        if '?#' in name and not unparsed_name[3]:
+            unparsed_name[2] += '?'
         return urlunsplit(unparsed_name)
 
     def cache_key(self, name):
