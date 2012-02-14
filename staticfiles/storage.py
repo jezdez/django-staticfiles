@@ -41,8 +41,6 @@ def __exit__(self, exc_type, exc_value, tb):
 setattr_ifmissing([File, ContentFile], '__enter__', __enter__)
 setattr_ifmissing([File, ContentFile], '__exit__', __exit__)
 
-fragments_re = re.compile(r'([?#].*)$')
-
 
 class TimeAwareFileSystemStorage(FileSystemStorage):
     def accessed_time(self, name):
