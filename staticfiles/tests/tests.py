@@ -444,6 +444,21 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         with storage.staticfiles_storage.open(relpath) as relfile:
             self.assertIn("https://", relfile.read())
 
+    def test_cache_invalidation(self):
+        name = "cached/styles.css"
+        hashed_name = "cached/styles.93b1147e8552.css"
+        # check if the cache is filled correctly as expected
+        cache_key = storage.staticfiles_storage.cache_key(name)
+        cached_name = storage.staticfiles_storage.cache.get(cache_key)
+        self.assertEqual(self.cached_file_path(name), cached_name)
+        # clearing the cache to make sure we re-set it correctly in the url method
+        storage.staticfiles_storage.cache.clear()
+        cached_name = storage.staticfiles_storage.cache.get(cache_key)
+        self.assertEqual(cached_name, None)
+        self.assertEqual(self.cached_file_path(name), hashed_name)
+        cached_name = storage.staticfiles_storage.cache.get(cache_key)
+        self.assertEqual(cached_name, hashed_name)
+
     def test_post_processing(self):
         """Test that post_processing behaves correctly.
 
