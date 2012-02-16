@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v1.2.1 (2012-02-16)
+-------------------
+
+* Backported a change from Django trunk that prevents openening too
+  many files at once when running the ``collectstatic`` management
+  command.
+
 v1.2 (2012-02-12)
 -----------------
 
