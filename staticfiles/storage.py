@@ -41,8 +41,6 @@ def __exit__(self, exc_type, exc_value, tb):
 setattr_ifmissing([File, ContentFile], '__enter__', __enter__)
 setattr_ifmissing([File, ContentFile], '__exit__', __exit__)
 
-fragments_re = re.compile(r'([?#].*)$')
-
 
 class TimeAwareFileSystemStorage(FileSystemStorage):
     def accessed_time(self, name):
@@ -139,6 +137,10 @@ class CachedFilesMixin(object):
                                    (root, md5sum, ext))
         unparsed_name = list(parsed_name)
         unparsed_name[2] = hashed_name
+        # Special casing for a @font-face hack, like url(myfont.eot?#iefix")
+        # http://www.fontspring.com/blog/the-new-bulletproof-font-face-syntax
+        if '?#' in name and not unparsed_name[3]:
+            unparsed_name[2] += '?'
         return urlunsplit(unparsed_name)
 
     def cache_key(self, name):
@@ -245,7 +247,8 @@ class CachedFilesMixin(object):
 
             # use the original, local file, not the copied-but-unprocessed
             # file, which might be somewhere far away, like S3
-            with paths[name] as original_file:
+            storage, path = paths[name]
+            with storage.open(path) as original_file:
 
                 # generate the hash with the original content, even for
                 # adjustable files.
