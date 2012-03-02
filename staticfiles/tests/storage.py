@@ -1,10 +1,11 @@
 from datetime import datetime
 from django.core.files import storage
 
+
 class DummyStorage(storage.Storage):
     """
     A storage class that does implement modified_time() but raises
-    NotImplementedError when calling 
+    NotImplementedError when calling
     """
     def _save(self, name, content):
         return 'dummy'

@@ -33,15 +33,16 @@ static
 
 .. versionadded:: 1.1
 
-Uses the configued :ref:`STATICFILES_STORAGE` storage to create the
-full URL for the given relative path, e.g.::
+Uses the configued :attr:`~django.conf.settings.STATICFILES_STORAGE` storage
+to create the full URL for the given relative path, e.g.::
 
     {% load staticfiles %}
     <img src="{% static "css/base.css" %}" />
 
 The previous example is equal to calling the ``url`` method of an instance of
-:ref:`STATICFILES_STORAGE` with ``"css/base.css"``. This is especially
-useful when using a non-local storage backend to `deploy files to a CDN`_.
+:attr:`~django.conf.settings.STATICFILES_STORAGE` with ``"css/base.css"``.
+This is especially useful when using a non-local storage backend to `deploy
+files to a CDN`_.
 
 .. _`deploy files to a CDN`: https://docs.djangoproject.com/en/dev/howto/static-files/#serving-static-files-from-a-cloud-service-or-cdn
 
@@ -83,9 +84,10 @@ StaticFilesStorage
 .. class:: storage.StaticFilesStorage
 
    A subclass of the :class:`~django.core.files.storage.FileSystemStorage`
-   storage backend that uses the :ref:`STATIC_ROOT` setting as the base
-   file system location and the :ref:`STATIC_URL` setting respectively
-   as the base URL.
+   storage backend that uses the :attr:`~django.conf.settings.STATIC_ROOT`
+   setting as the base file system location and the
+   :attr:`~django.conf.settings.STATIC_URL` setting respectively as the base
+   URL.
 
    .. method:: post_process(paths, **options)
 
@@ -143,7 +145,7 @@ CachedStaticFilesStorage
    To enable the ``CachedStaticFilesStorage`` you have to make sure the
    following requirements are met:
 
-   * the :ref:`STATICFILES_STORAGE` setting is set to
+   * the :attr:`~django.conf.settings.STATICFILES_STORAGE` setting is set to
      ``'staticfiles.storage.CachedStaticFilesStorage'``
    * the ``DEBUG`` setting is set to ``False``
    * you use the ``staticfiles``

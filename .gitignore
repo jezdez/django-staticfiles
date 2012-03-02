@@ -22,3 +22,4 @@ docs/_build
 tests/project/site_media/static/*
 .tox/
 *.egg
+reports/*
