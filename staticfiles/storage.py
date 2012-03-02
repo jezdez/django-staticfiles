@@ -220,7 +220,7 @@ class CachedFilesMixin(object):
             return 'url("%s")' % unquote(hashed_url)
         return converter
 
-    def post_process(self, paths, dry_run=False, **options):
+    def post_process(self, paths, dry_run=False, fail_silently=False):
         """
         Post process the given list of files (called from collectstatic).
 
@@ -234,7 +234,6 @@ class CachedFilesMixin(object):
         If either of these are performed on a file, then that file is considered
         post-processed.
         """
-        fail_silently = options['ignore_errors']
         # don't even dare to process the files if we're in dry run mode
         if dry_run:
             return

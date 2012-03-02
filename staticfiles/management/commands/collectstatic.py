@@ -82,6 +82,7 @@ class Command(NoArgsCommand):
             ignore_patterns += ['CVS', '.*', '*~']
         self.ignore_patterns = list(set(ignore_patterns))
         self.post_process = options['post_process']
+        self.fail_silently = options['ignore_errors']
 
     def collect(self):
         """
@@ -119,7 +120,7 @@ class Command(NoArgsCommand):
         # method and pass it the list of modified files.
         if self.post_process and hasattr(self.storage, 'post_process'):
             processor = self.storage.post_process(found_files,
-                                                  dry_run=self.dry_run)
+                dry_run=self.dry_run, fail_silently=self.fail_silently)
             for original_path, processed_path, processed in processor:
                 if processed:
                     self.log(u"Post-processed '%s' as '%s" %
