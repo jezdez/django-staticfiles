@@ -5,6 +5,7 @@ from django.utils.datastructures import SortedDict
 from django.utils.functional import memoize, LazyObject
 from django.utils.importlib import import_module
 from django.utils._os import safe_join
+from django.contrib.staticfiles.finders import BaseFinder as DjangoBaseFinder
 
 from staticfiles import utils, storage
 from staticfiles.conf import settings
@@ -12,7 +13,7 @@ from staticfiles.conf import settings
 _finders = SortedDict()
 
 
-class BaseFinder(object):
+class BaseFinder(DjangoBaseFinder):
     """
     A base file finder to be used for custom staticfiles finder classes.
     """
