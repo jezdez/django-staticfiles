@@ -136,9 +136,8 @@ class BaseCollectionTestCase(BaseStaticFilesTestCase, unittest2.TestCase):
         ignore_patterns = [
             '*.ignoreme', os.path.join('test', '*.ignoreme2'), os.path.join(
                 settings.TEST_ROOT, 'apps', 'test', 'static', 'test', '*.ignoreme3')]
-        kwargs.setdefault('fail_silently', True)
         call_command('collectstatic', interactive=False, verbosity='0',
-                     ignore_patterns=ignore_patterns, **kwargs)
+                     ignore_patterns=ignore_patterns, fail_silently=True, **kwargs)
 
     def _get_file(self, filepath):
         assert filepath, 'filepath is empty.'
