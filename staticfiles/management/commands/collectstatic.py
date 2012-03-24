@@ -45,7 +45,7 @@ class Command(NoArgsCommand):
                 "'.*' and '*~'."),
         make_option('--ignore-errors', action='store_true',
             dest='fail_silently', default=False,
-            help="Ignore post-processing errors raised on missing file."),
+            help="Ignore post-processing error raised on missing file."),
     )
     help = "Collect static files in a single location."
     requires_model_validation = False

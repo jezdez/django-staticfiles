@@ -54,7 +54,7 @@ Some commonly used options are:
 
     .. versionadded:: 1.2
 
-    Ignore post-processing errors raised on missing file.
+    Ignore post-processing error raised on missing file.
 
 For a full list of options, refer to the collectstatic management command help
 by running::
