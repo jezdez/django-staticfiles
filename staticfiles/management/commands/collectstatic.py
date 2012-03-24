@@ -44,7 +44,7 @@ class Command(NoArgsCommand):
             help="Don't ignore the common private glob-style patterns 'CVS', "
                 "'.*' and '*~'."),
         make_option('--ignore-errors', action='store_true',
-            dest='ignore_errors', default=False,
+            dest='fail_silently', default=False,
             help="Ignore post-processing errors raised on missing file."),
     )
     help = "Collect static files in a single location."
@@ -82,7 +82,7 @@ class Command(NoArgsCommand):
             ignore_patterns += ['CVS', '.*', '*~']
         self.ignore_patterns = list(set(ignore_patterns))
         self.post_process = options['post_process']
-        self.fail_silently = options['ignore_errors']
+        self.fail_silently = options['fail_silently']
 
     def collect(self):
         """
