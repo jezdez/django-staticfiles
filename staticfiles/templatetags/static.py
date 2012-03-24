@@ -3,6 +3,7 @@ from django.utils.encoding import iri_to_uri
 
 register = template.Library()
 
+
 class PrefixNode(template.Node):
 
     def __repr__(self):
@@ -47,6 +48,7 @@ class PrefixNode(template.Node):
         context[self.varname] = prefix
         return ''
 
+
 @register.tag
 def get_static_prefix(parser, token):
     """
@@ -64,6 +66,7 @@ def get_static_prefix(parser, token):
 
     """
     return PrefixNode.handle_token(parser, token, "STATIC_URL")
+
 
 @register.tag
 def get_media_prefix(parser, token):

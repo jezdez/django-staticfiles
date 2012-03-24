@@ -17,6 +17,7 @@ def get_files_for_app(app, ignore_patterns=None):
         "instead.", DeprecationWarning)
     return AppStaticStorage(app).get_files(ignore_patterns)
 
+
 def get_app_prefix(app):
     """
     Return the path name that should be prepended to files for this app.
@@ -27,6 +28,7 @@ def get_app_prefix(app):
         "deprecated. Use staticfiles.storage.AppStaticStorage.get_prefix "
         "instead.", DeprecationWarning)
     return AppStaticStorage(app).get_prefix()
+
 
 def matches_patterns(path, patterns=None):
     """
@@ -39,6 +41,7 @@ def matches_patterns(path, patterns=None):
         if fnmatch.fnmatchcase(path, pattern):
             return True
     return False
+
 
 def get_filtered_patterns(storage, ignore_patterns=None, location=''):
     """
@@ -62,6 +65,7 @@ def get_filtered_patterns(storage, ignore_patterns=None, location=''):
             ignore_filtered.append(tail)
     return ignore_filtered
 
+
 def get_files(storage, ignore_patterns=None, location=''):
     """
     Recursively walk the storage directories yielding the paths
@@ -84,4 +88,3 @@ def get_files(storage, ignore_patterns=None, location=''):
             dir = os.path.join(location, dir)
         for fn in get_files(storage, ignore_patterns, dir):
             yield fn
-
