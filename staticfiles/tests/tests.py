@@ -361,7 +361,7 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
                                 "does/not/exist.png",
                                 "/static/does/not/exist.png")
         self.assertStaticRenders("test/file.txt",
-                                 "/static/test/file.ea5bccaf16d5.txt")
+                                 "/static/test/file.dad0999e4f8f.txt")
         self.assertStaticRenders("cached/styles.css",
                                  "/static/cached/styles.93b1147e8552.css")
 
@@ -465,6 +465,15 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         with storage.staticfiles_storage.open(relpath) as relfile:
             content = relfile.read()
             self.assertIn('@import url("img/does_not_exists.png");', content)
+
+    def test_path_with_precedence(self):
+        relpath = self.cached_file_path("test/file.txt")
+        self.assertEqual(relpath, "test/file.dad0999e4f8f.txt")
+        with storage.staticfiles_storage.open(
+                "test/file.dad0999e4f8f.txt") as relfile:
+            content = relfile.read()
+            self.assertNotIn("In app media directory.", content)
+            self.assertIn("In STATICFILES_DIRS directory.", content)
 
     def test_post_processing(self):
         """Test that post_processing behaves correctly.
