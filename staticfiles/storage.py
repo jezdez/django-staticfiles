@@ -234,8 +234,8 @@ class CachedFilesMixin(object):
         if dry_run:
             return
 
-        # delete cache of all handled paths
-        self.cache.delete_many([self.cache_key(path) for path in paths])
+        # where to store the new paths
+        new_hashed_paths = {}
 
         # build a list of adjustable files
         matches = lambda path: matches_patterns(path, self._patterns.keys())
@@ -284,8 +284,10 @@ class CachedFilesMixin(object):
                         hashed_name = force_unicode(saved_name.replace('\\', '/'))
 
                 # and then set the cache accordingly
-                self.cache.set(self.cache_key(name), hashed_name)
+                new_hashed_paths[self.cache_key(name)] = hashed_name
                 yield name, hashed_name, processed
+
+        self.cache.set_many(new_hashed_paths)
 
 
 class CachedStaticFilesStorage(CachedFilesMixin, StaticFilesStorage):
