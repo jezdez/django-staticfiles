@@ -25,7 +25,7 @@ The main website for django-staticfiles is
 
 .. note:: django-staticfiles is now part of Django (since 1.3) as ``django.contrib.staticfiles``.
 
-   The django-staticfiles 0.3.X series will only receive security and data los
+   The django-staticfiles 0.3.X series will only receive security and data loss
    bug fixes after the release of django-staticfiles 1.0. Any Django 1.2.X
    project using django-staticfiles 0.3.X and lower should be upgraded to use
    either Django >= 1.3's staticfiles app or django-staticfiles >= 1.0 to
