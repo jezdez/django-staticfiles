@@ -6,6 +6,7 @@ from django.utils.encoding import smart_str, smart_unicode
 
 from staticfiles import finders
 
+
 class Command(LabelCommand):
     help = "Finds the absolute paths for the given static file(s)."
     args = "[file ...]"
