@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v1.3 (2012-XX-XX)
+-------------------
+
+* Moved CI tests to Travis: http://travis-ci.org/jezdez/django-staticfiles
+
 v1.2.1 (2012-02-16)
 -------------------
 

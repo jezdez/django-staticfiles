@@ -12,7 +12,6 @@ dist
 build
 dev.db
 local_settings.py
-parts/*
 eggs/*
 downloads/*
 .installed.cfg
@@ -20,6 +19,5 @@ bin/*
 develop-eggs/*.egg-link
 docs/_build
 tests/project/site_media/static/*
-.tox/
 *.egg
-reports/*
+.coverage

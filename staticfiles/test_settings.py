@@ -64,12 +64,6 @@ INSTALLED_APPS = [
     'staticfiles.tests.apps.test',
     'staticfiles.tests.apps.no_label',
     'staticfiles.tests.apps.skip',
-    'django_jenkins',
 ]
 
-JENKINS_TASKS = (
-    'django_jenkins.tasks.run_pyflakes',
-    'django_jenkins.tasks.run_pep8',
-    'django_jenkins.tasks.with_coverage',
-    'django_jenkins.tasks.django_tests',
-)
+TEST_RUNNER = 'discover_runner.DiscoverRunner'

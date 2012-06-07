@@ -20,7 +20,7 @@ from django.utils.encoding import smart_unicode
 try:
     from django.utils.functional import empty
 except ImportError:
-    empty = None
+    empty = None  # noqa
 
 from staticfiles import finders, storage
 from staticfiles.conf import settings
@@ -37,7 +37,7 @@ def rmtree_errorhandler(func, path, exc_info):
     """
     exctype, value = exc_info[:2]
     # lookin for a windows error
-    if exctype is not WindowsError or 'Access is denied' not in str(value):
+    if exctype is not WindowsError or 'Access is denied' not in str(value):  # noqa
         raise
     # file type should currently be read only
     if ((os.stat(path).st_mode & stat.S_IREAD) != stat.S_IREAD):
