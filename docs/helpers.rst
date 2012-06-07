@@ -33,7 +33,7 @@ static
 
 .. versionadded:: 1.1
 
-Uses the configued :attr:`~django.conf.settings.STATICFILES_STORAGE` storage
+Uses the configured :attr:`~django.conf.settings.STATICFILES_STORAGE` storage
 to create the full URL for the given relative path, e.g.::
 
     {% load staticfiles %}
