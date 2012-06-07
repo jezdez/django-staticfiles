@@ -5,8 +5,10 @@ from fnmatch import fnmatchcase
 from distutils.util import convert_path
 from setuptools import setup, find_packages
 
+
 def read(*parts):
     return open(os.path.join(os.path.dirname(__file__), *parts)).read()
+
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
@@ -21,6 +23,7 @@ def find_version(*file_paths):
 standard_exclude = ('*.py', '*.pyc', '*$py.class', '*~', '.*', '*.bak')
 standard_exclude_directories = ('.*', 'CVS', '_darcs', './build',
                                 './dist', 'EGG-INFO', '*.egg-info')
+
 
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
@@ -102,9 +105,8 @@ def find_package_data(
                         break
                 if bad_name:
                     continue
-                out.setdefault(package, []).append(prefix+name)
+                out.setdefault(package, []).append(prefix + name)
     return out
-
 
 
 setup(

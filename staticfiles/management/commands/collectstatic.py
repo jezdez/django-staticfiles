@@ -43,6 +43,9 @@ class Command(NoArgsCommand):
             dest='use_default_ignore_patterns', default=True,
             help="Don't ignore the common private glob-style patterns 'CVS', "
                 "'.*' and '*~'."),
+        make_option('--ignore-errors', action='store_true',
+            dest='fail_silently', default=False,
+            help="Ignore post-processing error raised on missing file."),
     )
     help = "Collect static files in a single location."
     requires_model_validation = False
@@ -79,6 +82,7 @@ class Command(NoArgsCommand):
             ignore_patterns += ['CVS', '.*', '*~']
         self.ignore_patterns = list(set(ignore_patterns))
         self.post_process = options['post_process']
+        self.fail_silently = options['fail_silently']
 
     def collect(self):
         """
@@ -109,14 +113,16 @@ class Command(NoArgsCommand):
                     prefixed_path = os.path.join(storage.prefix, path)
                 else:
                     prefixed_path = path
-                found_files[prefixed_path] = (storage, path)
-                handler(path, prefixed_path, storage)
+                # Process only not already processed files.
+                if prefixed_path not in found_files:
+                    found_files[prefixed_path] = (storage, path)
+                    handler(path, prefixed_path, storage)
 
         # Here we check if the storage backend has a post_process
         # method and pass it the list of modified files.
         if self.post_process and hasattr(self.storage, 'post_process'):
             processor = self.storage.post_process(found_files,
-                                                  dry_run=self.dry_run)
+                dry_run=self.dry_run, fail_silently=self.fail_silently)
             for original_path, processed_path, processed in processor:
                 if processed:
                     self.log(u"Post-processed '%s' as '%s" %
