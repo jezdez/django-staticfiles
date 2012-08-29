@@ -4,8 +4,11 @@ import sys
 from optparse import make_option
 
 from django.conf import settings
-from django.core.handlers.wsgi import WSGIHandler
 from django.core.servers.basehttp import run, WSGIServerException
+try:
+    from django.core.servers.basehttp import get_internal_wsgi_application as WSGIHandler
+except ImportError:
+    from django.core.handlers.wsgi import WSGIHandler
 from django.core.management.base import BaseCommand, CommandError
 
 from staticfiles.handlers import StaticFilesHandler
