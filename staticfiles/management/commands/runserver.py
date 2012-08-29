@@ -8,7 +8,7 @@ from django.core.servers.basehttp import run, WSGIServerException
 try:
     from django.core.servers.basehttp import get_internal_wsgi_application as WSGIHandler
 except ImportError:
-    from django.core.handlers.wsgi import WSGIHandler
+    from django.core.handlers.wsgi import WSGIHandler  # NOQA
 from django.core.management.base import BaseCommand, CommandError
 
 from staticfiles.handlers import StaticFilesHandler
