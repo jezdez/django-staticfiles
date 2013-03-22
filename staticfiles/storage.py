@@ -19,7 +19,7 @@ from django.utils.encoding import force_unicode, smart_str
 from django.utils.datastructures import SortedDict
 from django.utils.functional import LazyObject
 from django.utils.importlib import import_module
-from django.utils.hashcompat import md5_constructor
+from hashlib import md5 as md5_constructor
 
 from staticfiles.utils import matches_patterns
 
