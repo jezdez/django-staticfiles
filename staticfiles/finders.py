@@ -8,11 +8,16 @@ from django.utils._os import safe_join
 
 from staticfiles import utils, storage
 from staticfiles.conf import settings
+try:
+    from django.contrib.staticfiles.finders import BaseFinder as DjangoBaseFinder
+except ImportError:
+    DjangoBaseFinder = object
+
 
 _finders = SortedDict()
 
 
-class BaseFinder(object):
+class BaseFinder(DjangoBaseFinder):
     """
     A base file finder to be used for custom staticfiles finder classes.
     """
