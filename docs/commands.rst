@@ -50,6 +50,12 @@ Some commonly used options are:
     method of the configured
     :attr:`~django.conf.settings.STATICFILES_STORAGE` storage backend.
 
+``--ignore-errors``
+
+    .. versionadded:: 1.2
+
+    Ignore post-processing error raised on missing file.
+
 For a full list of options, refer to the collectstatic management command help
 by running::
 

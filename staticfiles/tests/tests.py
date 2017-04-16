@@ -137,7 +137,7 @@ class BaseCollectionTestCase(BaseStaticFilesTestCase, unittest2.TestCase):
             '*.ignoreme', os.path.join('test', '*.ignoreme2'), os.path.join(
                 settings.TEST_ROOT, 'apps', 'test', 'static', 'test', '*.ignoreme3')]
         call_command('collectstatic', interactive=False, verbosity='0',
-                     ignore_patterns=ignore_patterns, **kwargs)
+                     ignore_patterns=ignore_patterns, fail_silently=True, **kwargs)
 
     def _get_file(self, filepath):
         assert filepath, 'filepath is empty.'
@@ -268,7 +268,7 @@ class TestCollection(CollectionTestCase, TestDefaults):
 
 class TestCollectionClear(CollectionTestCase):
     """
-    Test the ``--clear`` option of the ``collectstatic`` managemenet command.
+    Test the ``--clear`` option of the ``collectstatic`` management command.
     """
     def run_collectstatic(self, **kwargs):
         clear_filepath = os.path.join(settings.STATIC_ROOT, 'cleared.txt')
@@ -459,6 +459,13 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         cached_name = storage.staticfiles_storage.cache.get(cache_key)
         self.assertEqual(cached_name, hashed_name)
 
+    def test_ignored_file(self):
+        relpath = self.cached_file_path("cached/faulty.css")
+        self.assertEqual(relpath, "cached/faulty.c376691faf10.css")
+        with storage.staticfiles_storage.open(relpath) as relfile:
+            content = relfile.read()
+            self.assertIn('@import url("img/does_not_exists.png");', content)
+
     def test_post_processing(self):
         """Test that post_processing behaves correctly.
 
@@ -476,7 +483,8 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
             'dry_run': False,
             'post_process': True,
             'use_default_ignore_patterns': True,
-            'ignore_patterns': ['*.ignoreme']
+            'ignore_patterns': ['*.ignoreme'],
+            'fail_silently': True,
         }
 
         collectstatic_cmd = CollectstaticCommand()
@@ -484,6 +492,28 @@ class TestCollectionCachedStorage(BaseCollectionTestCase, BaseStaticFilesTestCas
         stats = collectstatic_cmd.collect()
         self.assertTrue(u'cached/css/window.css' in stats['post_processed'])
         self.assertTrue(u'cached/css/img/window.png' in stats['unmodified'])
+
+    def test_post_processing_fail(self):
+        """Test that post_processing behaves correctly.
+
+        Missing files raise a ValueError on post-processing when errors aren't
+        explicitely silenced.
+        """
+        collectstatic_args = {
+            'interactive': False,
+            'verbosity': '0',
+            'link': False,
+            'clear': False,
+            'dry_run': False,
+            'post_process': True,
+            'use_default_ignore_patterns': True,
+            'ignore_patterns': ['*.ignoreme'],
+            'fail_silently': False,
+        }
+
+        collectstatic_cmd = CollectstaticCommand()
+        collectstatic_cmd.set_options(**collectstatic_args)
+        self.assertRaises(ValueError, collectstatic_cmd.collect)
 
 if sys.platform != 'win32':
 
